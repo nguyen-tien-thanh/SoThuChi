@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">CW1</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+
+
+    <string name="title_expense">Expense</string>
+    <string name="title_income">Income</string>
+    <string name="title_id">ID</string>
+    <string name="title_date">Date</string>
+    <string name="title_note">Note</string>
+    <string name="title_money">Money</string>
+    <string name="title_category">Category</string>
+
+
+    <string name="hint_id">Input ID</string>
+    <string name="hint_date">Input date</string>
+    <string name="hint_note">Input note</string>
+    <string name="hint_money">Input money</string>
+    <string name="hint_category">Input category</string>
+
+    <string name="btn_save">Save</string>
+    <string name="btn_cancel">Cancel</string>
+</resources>
