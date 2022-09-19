@@ -39,7 +39,9 @@
             android:id="@+id/editId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:editable="false"
             android:ems="10"
+            android:focusable="false"
             android:hint="@string/hint_id"
             android:importantForAutofill="no"
             android:inputType="number"
@@ -61,6 +63,15 @@
             android:inputType="date"
             android:minHeight="48dp"
             android:textColorHint="#757575" />
+
+        <Button android:id="@+id/datePicker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="JAN 01 2020"
+            android:textSize="20sp"
+            android:textColor="@color/black"
+            style="?android:spinnerStyle"
+            android:onClick="openDatePicker"/>
 
         <TextView
             android:id="@+id/noteTitle"
