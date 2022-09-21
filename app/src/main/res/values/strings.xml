@@ -16,10 +16,25 @@
 
     <string name="hint_id">Input ID</string>
     <string name="hint_date">Input date</string>
-    <string name="hint_note">Input note</string>
+    <string name="hint_note">Input note (can be null)</string>
     <string name="hint_money">Input money</string>
-    <string name="hint_category">Input category</string>
+    <string name="hint_category">Choose above (Input if not exist)</string>
 
     <string name="btn_save">Save</string>
     <string name="btn_cancel">Cancel</string>
+
+    <string name="example_date">JAN 01 2020</string>
+
+    <string name="title_item_food">Food</string>
+    <string name="title_item_houseware">Houseware</string>
+    <string name="title_item_clothes">Clothes</string>
+    <string name="title_item_cosmetic">Cosmetic</string>
+    <string name="title_item_exchange">Exchange</string>
+    <string name="title_item_medical">Medical</string>
+    <string name="title_item_education">Education</string>
+    <string name="title_item_electric_bill">Electric bill</string>
+    <string name="title_item_transportation">Transportation</string>
+    <string name="title_item_contact_fee">Contact Fee</string>
+    <string name="title_item_house_expense">House expense</string>
+    <string name="title_item_repair">Repair</string>
 </resources>
