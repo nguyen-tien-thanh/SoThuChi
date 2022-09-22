@@ -7,10 +7,12 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,10 +26,13 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.cw_1.databinding.ActivityMainBinding;
 
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
@@ -35,8 +40,6 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private Button dateButton;
     private DatePickerDialog datePickerDialog;
-
-    TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,20 +53,22 @@ public class MainActivity extends AppCompatActivity {
         dateButton = findViewById(R.id.editDate);
         dateButton.setText(getTodayDate());
 
-        Button date = (Button)findViewById(R.id.editDate);
+        Spinner spinner = (Spinner)findViewById(R.id.spinnerTrip);
         TextView note = (TextView)findViewById(R.id.editNote);
         TextView money = (TextView)findViewById(R.id.editMoney);
         TextView category = (TextView)findViewById(R.id.editCategory);
         Button btnSave = (Button)findViewById(R.id.btnSave);
 
+
+        // Submit Transaction detail trip
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Connection connection = connectionClass();
                 try{
                     if(connection != null){
-                        String sqlScript = "Insert into Transaction_Table (IssueDate, Note, Money, Category) values ('"
-                                +date.getText().toString()+"','"
+                        String sqlScript = "Insert into Transactions (IssueDate, Note, Amount, TransactionType) values ('"
+                                +dateButton.getText().toString()+"','"
                                 +note.getText().toString()+"','"
                                 +money.getText().toString()+"','"
                                 +category.getText().toString()+"')";
@@ -80,6 +85,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+        //Spinner data
+        FillSpinner();
+
         BottomNavigationView navView = findViewById(R.id.nav_view);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
@@ -89,29 +97,57 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(binding.navView, navController);
     }
 
+    //Fill spinner
+    public void FillSpinner(){
+        Spinner spinner = (Spinner)findViewById(R.id.spinnerTrip);
+        Connection connection = connectionClass();
+        try{
+            if(connection != null){
+                String sqlScript = "Select * from trip";
+                Statement st = connection.createStatement();
+                ResultSet rs = st.executeQuery(sqlScript);
+
+                ArrayList<String> data = new ArrayList<String>();
+                while (rs.next()){
+                    String TripName = rs.getString("TripName") + " in " + rs.getString("Destination");
+                    data.add(TripName);
+                }
+
+                ArrayAdapter<String> array = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, data);
+                array.setDropDownViewResource(android.R.layout
+                                .simple_spinner_dropdown_item);
+                spinner.setAdapter(array);
+            }
+        }
+        catch (Exception exception){
+            Log.e("Error", exception.getMessage());
+        }
+    }
+
+
+    @SuppressLint("NonConstantResourceId")
     public void chooseCategory(View v){
         EditText editCategory = (EditText)findViewById(R.id.editCategory);
         //Remove style all category
         removeBackgroundCategory(R.id.category_row_1);
         removeBackgroundCategory(R.id.category_row_2);
         removeBackgroundCategory(R.id.category_row_3);
-        removeBackgroundCategory(R.id.category_row_4);
 
         //Apply style to chosen category
         v.setBackground(getResources().getDrawable(R.drawable.border_item));
 
         switch (v.getId()){
-            case R.id.category_food:
-                editCategory.setText(getResources().getString(R.string.title_item_food));
+            case R.id.category_breakfast:
+                editCategory.setText(getResources().getString(R.string.title_item_breakfast));
                 break;
-            case R.id.category_houseware:
-                editCategory.setText(getResources().getString(R.string.title_item_houseware));
+            case R.id.category_lunch:
+                editCategory.setText(getResources().getString(R.string.title_item_lunch));
                 break;
-            case R.id.category_clothes:
-                editCategory.setText(getResources().getString(R.string.title_item_clothes));
+            case R.id.category_dinner:
+                editCategory.setText(getResources().getString(R.string.title_item_dinner));
                 break;
-            case R.id.category_cosmetic:
-                editCategory.setText(getResources().getString(R.string.title_item_cosmetic));
+            case R.id.category_contact_fee:
+                editCategory.setText(getResources().getString(R.string.title_item_contact_fee));
                 break;
             case R.id.category_exchange:
                 editCategory.setText(getResources().getString(R.string.title_item_exchange));
@@ -119,23 +155,14 @@ public class MainActivity extends AppCompatActivity {
             case R.id.category_medical:
                 editCategory.setText(getResources().getString(R.string.title_item_medical));
                 break;
-            case R.id.category_education:
-                editCategory.setText(getResources().getString(R.string.title_item_education));
+            case R.id.category_abode:
+                editCategory.setText(getResources().getString(R.string.title_item_abode));
                 break;
-            case R.id.category_electric_bill:
-                editCategory.setText(getResources().getString(R.string.title_item_electric_bill));
+            case R.id.category_printing:
+                editCategory.setText(getResources().getString(R.string.title_item_printing));
                 break;
             case R.id.category_transportation:
                 editCategory.setText(getResources().getString(R.string.title_item_transportation));
-                break;
-            case R.id.category_contact_fee:
-                editCategory.setText(getResources().getString(R.string.title_item_contact_fee));
-                break;
-            case R.id.category_house_expense:
-                editCategory.setText(getResources().getString(R.string.title_item_house_expense));
-                break;
-            case R.id.category_repair:
-                editCategory.setText(getResources().getString(R.string.title_item_repair));
                 break;
             default:
                 editCategory.setText(getResources().getString(R.string.hint_category));
@@ -152,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
             categoryItems.setBackgroundResource(0);
         }
     }
-
 
     private String getTodayDate() {
         Calendar cal = Calendar.getInstance();
@@ -236,12 +262,12 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("NewApi")
     public Connection connectionClass() {
         Connection con = null;
-        String ip = "192.168.0.106", port = "1433", username = "sa", password = "123456", databasename = "CRUDAndroidDB";
+        String ip = "192.168.0.106", port = "1433", username = "sa", password = "123456", database = "CRUDAndroidDB";
         StrictMode.ThreadPolicy tp = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(tp);
         try {
             Class.forName("net.sourceforge.jtds.jdbc.Driver");
-            String connectionUrl = "jdbc:jtds:sqlserver://" + ip + ":" + port + ";databasename=" + databasename + ";user=" + username + ";password=" + password + ";";
+            String connectionUrl = "jdbc:jtds:sqlserver://" + ip + ":" + port + ";databasename=" + database + ";user=" + username + ";password=" + password + ";";
             con = DriverManager.getConnection(connectionUrl);
         } catch (Exception exception) {
             Log.e("Error", exception.getMessage());

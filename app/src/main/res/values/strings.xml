@@ -6,12 +6,12 @@
 
 
     <string name="title_expense">Expense</string>
-    <string name="title_income">Income</string>
     <string name="title_id">ID</string>
     <string name="title_date">Date</string>
     <string name="title_note">Note</string>
     <string name="title_money">Money</string>
     <string name="title_category">Category</string>
+    <string name="title_trip">Trip</string>
 
 
     <string name="hint_id">Input ID</string>
@@ -25,16 +25,13 @@
 
     <string name="example_date">JAN 01 2020</string>
 
-    <string name="title_item_food">Food</string>
-    <string name="title_item_houseware">Houseware</string>
-    <string name="title_item_clothes">Clothes</string>
-    <string name="title_item_cosmetic">Cosmetic</string>
-    <string name="title_item_exchange">Exchange</string>
-    <string name="title_item_medical">Medical</string>
-    <string name="title_item_education">Education</string>
-    <string name="title_item_electric_bill">Electric bill</string>
-    <string name="title_item_transportation">Transportation</string>
+    <string name="title_item_breakfast">Breakfast</string>
+    <string name="title_item_lunch">Lunch</string>
+    <string name="title_item_dinner">Dinner</string>
     <string name="title_item_contact_fee">Contact Fee</string>
-    <string name="title_item_house_expense">House expense</string>
-    <string name="title_item_repair">Repair</string>
+    <string name="title_item_medical">Medical</string>
+    <string name="title_item_exchange">Exchange</string>
+    <string name="title_item_abode">Abode</string>
+    <string name="title_item_printing">Printing</string>
+    <string name="title_item_transportation">Transportation</string>
 </resources>
