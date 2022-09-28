@@ -15,7 +15,6 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,14 +25,14 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.cw_1.databinding.ActivityMainBinding;
 
-import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -65,23 +64,36 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Connection connection = connectionClass();
+                String compareValue = spinner.getSelectedItem().toString();
+
                 try{
                     if(connection != null){
-                        String sqlScript = "Insert into Transactions (IssueDate, Note, Amount, TransactionType) values ('"
+                        String sqlScript = "Select * from Trip";
+                        Statement st = connection.createStatement();
+                        ResultSet rs = st.executeQuery(sqlScript);
+
+                        HashMap<String, Integer> tripData = new HashMap<>();
+                        while(rs.next()){
+                            tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
+                        }
+                        Integer tripId = tripData.get(compareValue);
+
+
+                        String sqlScript2 = "Insert into Transactions (IssueDate, Note, Amount, TransactionType, TripId) values ('"
                                 +dateButton.getText().toString()+"','"
                                 +note.getText().toString()+"','"
                                 +money.getText().toString()+"','"
-                                +category.getText().toString()+"')";
-                        Statement st = connection.createStatement();
-                        ResultSet rs = st.executeQuery(sqlScript);
+                                +category.getText().toString()+"','"
+                                +tripId.toString()+"')";
+                        Statement st2 = connection.createStatement();
+                        st2.executeQuery(sqlScript2);
 
                     }
                 }
                 catch (Exception exception){
                     Log.e("Error", exception.getMessage());
-                    Toast.makeText(MainActivity.this,
-                            "Save successful !", Toast.LENGTH_LONG).show();
-                }}
+                }
+            }
         });
 
 
@@ -96,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
     }
+
 
     //Fill spinner
     public void FillSpinner(){
