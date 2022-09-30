@@ -18,8 +18,8 @@
         tools:layout="@layout/fragment_dashboard" />
 
     <fragment
-        android:id="@+id/navigation_notifications"
-        android:name="com.example.cw_1.ui.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
+        android:id="@+id/navigation_trip"
+        android:name="com.example.cw_1.ui.trip.TripFragment"
+        android:label="@string/title_trip"
+        tools:layout="@layout/fragment_trip" />
 </navigation>

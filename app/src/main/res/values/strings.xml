@@ -13,7 +13,14 @@
     <string name="title_category">Category</string>
     <string name="title_trip">Trip</string>
 
+    <string name="title_trip_name">Trip name</string>
+    <string name="title_destination">Destination</string>
+    <string name="title_risk_assessment">Risk assessment</string>
+    <string name="title_description">Description</string>
 
+    <string name="hint_trip_name">Input trip name</string>
+    <string name="hint_destination">Input destination</string>
+    <string name="hint_description">Input description (can be null)</string>
     <string name="hint_id">Input ID</string>
     <string name="hint_date">Input date</string>
     <string name="hint_note">Input note (can be null)</string>

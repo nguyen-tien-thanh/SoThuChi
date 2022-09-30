@@ -13,6 +13,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -102,13 +103,40 @@ public class MainActivity extends AppCompatActivity {
 
         BottomNavigationView navView = findViewById(R.id.nav_view);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
+                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_trip)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
     }
 
+    // Create Trip
+    public void saveTrip(View view){
+        Connection connection = connectionClass();
+        TextView tripName = (TextView)findViewById(R.id.editTripName);
+        TextView destination = (TextView)findViewById(R.id.editDestination);
+        TextView description = (TextView)findViewById(R.id.editDescription);
+        Boolean switchValue = ((Switch) findViewById(R.id.switchRiskAssessment)).isChecked();
+
+        dateButton = findViewById(R.id.editTripDate);
+        //dateButton.setText(getTodayDate());
+
+                try{
+                    if(connection != null){
+                        String sqlScript = "Insert into Trip (TripName, Destination, TripDate, RiskAssessment, Description ) values ('"
+                                +tripName.getText().toString()+"','"
+                                +destination.getText().toString()+"','"
+                                +dateButton.getText().toString()+"','"
+                                +switchValue+"','"
+                                +description.getText().toString()+"')";
+                        Statement st = connection.createStatement();
+                        ResultSet rs = st.executeQuery(sqlScript);
+                    }
+                }
+                catch (Exception exception) {
+                    Log.e("Error", exception.getMessage());
+                }
+    }
 
     //Fill spinner
     public void FillSpinner(){
