@@ -1,5 +1,7 @@
 package com.example.cw_1;
 
+import static java.lang.Integer.parseInt;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -26,12 +28,16 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.cw_1.databinding.ActivityMainBinding;
 
+import org.joda.time.DateTime;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 
@@ -50,53 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
         // DATE PICKER
         initDatePicker();
-        dateButton = findViewById(R.id.editDate);
-        dateButton.setText(getTodayDate());
-
-        Spinner spinner = (Spinner)findViewById(R.id.spinnerTrip);
-        TextView note = (TextView)findViewById(R.id.editNote);
-        TextView money = (TextView)findViewById(R.id.editMoney);
-        TextView category = (TextView)findViewById(R.id.editCategory);
-        Button btnSave = (Button)findViewById(R.id.btnSave);
-
-
-        // Submit Transaction detail trip
-        btnSave.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Connection connection = connectionClass();
-                String compareValue = spinner.getSelectedItem().toString();
-
-                try{
-                    if(connection != null){
-                        String sqlScript = "Select * from Trip";
-                        Statement st = connection.createStatement();
-                        ResultSet rs = st.executeQuery(sqlScript);
-
-                        HashMap<String, Integer> tripData = new HashMap<>();
-                        while(rs.next()){
-                            tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
-                        }
-                        Integer tripId = tripData.get(compareValue);
-
-
-                        String sqlScript2 = "Insert into Transactions (IssueDate, Note, Amount, TransactionType, TripId) values ('"
-                                +dateButton.getText().toString()+"','"
-                                +note.getText().toString()+"','"
-                                +money.getText().toString()+"','"
-                                +category.getText().toString()+"','"
-                                +tripId.toString()+"')";
-                        Statement st2 = connection.createStatement();
-                        st2.executeQuery(sqlScript2);
-
-                    }
-                }
-                catch (Exception exception){
-                    Log.e("Error", exception.getMessage());
-                }
-            }
-        });
-
+        //dateButton.setText(getTodayDate());
 
         //Spinner data
         FillSpinner();
@@ -108,6 +68,46 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
+    }
+
+    // Create Transaction
+    public void saveTransaction (View view){
+        dateButton = findViewById(R.id.editDate);
+        Spinner spinner = (Spinner)findViewById(R.id.spinnerTrip);
+        TextView note = (TextView)findViewById(R.id.editNote);
+        TextView money = (TextView)findViewById(R.id.editMoney);
+        TextView category = (TextView)findViewById(R.id.editCategory);
+
+        Connection connection = connectionClass();
+        String compareValue = spinner.getSelectedItem().toString();
+
+        try{
+            if(connection != null){
+                String sqlScript = "Select * from Trip";
+                Statement st = connection.createStatement();
+                ResultSet rs = st.executeQuery(sqlScript);
+
+                HashMap<String, Integer> tripData = new HashMap<>();
+                while(rs.next()){
+                    tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
+                }
+                Integer tripId = tripData.get(compareValue);
+
+
+                String sqlScript2 = "Insert into Transactions (IssueDate, Note, Amount, TransactionType, TripId) values ('"
+                        +dateButton.getText().toString()+"','"
+                        +note.getText().toString()+"','"
+                        +money.getText().toString()+"','"
+                        +category.getText().toString()+"','"
+                        +tripId.toString()+"')";
+                Statement st2 = connection.createStatement();
+                ResultSet rs2 = st2.executeQuery(sqlScript2);
+
+            }
+        }
+        catch (Exception exception){
+            Log.e("Error", exception.getMessage());
+        }
     }
 
     // Create Trip
@@ -221,14 +221,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String getTodayDate() {
-        Calendar cal = Calendar.getInstance();
-        int year = cal.get(Calendar.YEAR);
-        int month = cal.get(Calendar.MONTH);
-        month = month + 1;
-        int day = cal.get(Calendar.DAY_OF_MONTH);
-        return makeDateString(day, month, year);
-    }
 
     private void initDatePicker() {
         DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {

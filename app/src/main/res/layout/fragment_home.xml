@@ -436,6 +436,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/round_btn"
                     android:backgroundTint="@color/main_color"
+                    android:onClick="saveTransaction"
                     android:text="@string/btn_save" />
             </LinearLayout>
 
