@@ -7,32 +7,39 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.example.cw_1.MainActivity;
 import com.example.cw_1.R;
 import com.example.cw_1.models.Activity;
+import com.google.android.material.navigation.NavigationBarView;
 
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 public class DashboardFragment extends Fragment {
 
     @SuppressLint("SimpleDateFormat")
-    private final SimpleDateFormat format = new SimpleDateFormat("dd MMM yyyy");
+    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -45,20 +52,166 @@ public class DashboardFragment extends Fragment {
         monthPickerTitle.setText(timeStamp);
 
 
-        //Btn prev, next clicked
-        Button btnPrev = view.findViewById(R.id.btnPrevDay);
-        Button btnNext = view.findViewById(R.id.btnNextDay);
-        btnPrev.setOnClickListener(v -> setDate(true));
-        btnNext.setOnClickListener(v -> setDate(false));
-
-        //Set data
-//        ListView listActivity = view.findViewById(R.id.listActivity);
-
+        //Set data activities
         ArrayList<Activity> arrayOfActivities = Activity.getActivities();
         ActivitiesAdapter adapter = new ActivitiesAdapter(getActivity().getBaseContext(), arrayOfActivities);
         ListView listView = (ListView)view.findViewById(R.id.listActivity);
         listView.setAdapter(adapter);
 
+        // Set data of trip
+        Spinner spinner = view.findViewById(R.id.spinnerTripActivity);
+        Connection connection = connectionClass();
+        try{
+            if(connection != null){
+                String sqlScript = "Select * from trip";
+                Statement st = connection.createStatement();
+                ResultSet rs = st.executeQuery(sqlScript);
+
+                ArrayList<String> data = new ArrayList<String>();
+                while (rs.next()){
+                    String TripName = rs.getString("TripName") + " in " + rs.getString("Destination");
+                    data.add(TripName);
+                }
+
+                ArrayAdapter<String> array = new ArrayAdapter<String>(getActivity().getBaseContext(), android.R.layout.simple_spinner_item, data);
+                array.setDropDownViewResource(android.R.layout
+                        .simple_spinner_dropdown_item);
+                spinner.setAdapter(array);
+            }
+        }
+        catch (Exception exception){
+            Log.e("Error", exception.getMessage());
+        }
+
+
+
+        //Btn prev, next date clicked
+        Button btnPrev = view.findViewById(R.id.btnPrevDay);
+        Button btnNext = view.findViewById(R.id.btnNextDay);
+        btnPrev.setOnClickListener(v -> {
+            arrayOfActivities.clear();
+            try {
+                if(connection != null){
+                    Date dt = format.parse(monthPickerTitle.getText().toString());
+                    Calendar cal = Calendar.getInstance();
+                    assert dt != null;
+                    cal.setTime(dt);
+                    cal.add(Calendar.DAY_OF_MONTH, -1);
+                    monthPickerTitle.setText(format.format(cal.getTime()));
+
+                    String selectedItem = spinner.getSelectedItem().toString();
+                    String sqlScript = "Select * from Trip";
+                    Statement st = connection.createStatement();
+                    ResultSet rs = st.executeQuery(sqlScript);
+
+                    HashMap<String, Integer> tripData = new HashMap<>();
+                    while(rs.next()){
+                        tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
+                    }
+                    Integer tripId = tripData.get(selectedItem);
+
+                    String sqlScript2 = "SELECT Category, Amount FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
+                    Statement st2 = connection.createStatement();
+                    ResultSet rs2 = st2.executeQuery(sqlScript2);
+                    while(rs2.next()){
+                        arrayOfActivities.add(new Activity(rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount"))));
+                    }
+                    listView.setAdapter(adapter);
+                }
+            } catch (ParseException | SQLException e) {
+                e.printStackTrace();
+            }
+        });
+        btnNext.setOnClickListener(v -> {
+            arrayOfActivities.clear();
+            try {
+                if(connection != null){
+                    Date dt = format.parse(monthPickerTitle.getText().toString());
+                    Calendar cal = Calendar.getInstance();
+                    assert dt != null;
+                    cal.setTime(dt);
+                    cal.add(Calendar.DAY_OF_MONTH, 1);
+                    monthPickerTitle.setText(format.format(cal.getTime()));
+
+                    String selectedItem = spinner.getSelectedItem().toString();
+                    String sqlScript = "Select * from Trip";
+                    Statement st = connection.createStatement();
+                    ResultSet rs = st.executeQuery(sqlScript);
+
+                    HashMap<String, Integer> tripData = new HashMap<>();
+                    while(rs.next()){
+                        tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
+                    }
+                    Integer tripId = tripData.get(selectedItem);
+
+                    String sqlScript2 = "SELECT Category, Amount FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
+                    Statement st2 = connection.createStatement();
+                    ResultSet rs2 = st2.executeQuery(sqlScript2);
+                    while(rs2.next()){
+                        arrayOfActivities.add(new Activity(rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount"))));
+                    }
+                    listView.setAdapter(adapter);
+                }
+            } catch (ParseException | SQLException e) {
+                e.printStackTrace();
+            }
+        });
+
+        // Event on choosing trip from spinner
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedItem =  parent.getItemAtPosition(position).toString();
+                Toast.makeText(getActivity().getBaseContext(),"Finding activities in "+ selectedItem,Toast.LENGTH_LONG).show();
+
+                arrayOfActivities.clear();
+                try{
+                    if(connection != null){
+                        String sqlScript = "Select * from Trip";
+                        Statement st = connection.createStatement();
+                        ResultSet rs = st.executeQuery(sqlScript);
+
+                        HashMap<String, Integer> tripData = new HashMap<>();
+                        while(rs.next()){
+                            tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
+                        }
+                        Integer tripId = tripData.get(selectedItem);
+
+
+
+                        String sqlScript1 = "select TripDate, TripId from Trip where TripId =" + tripId;
+                        Statement st1 = connection.createStatement();
+                        ResultSet rs1 = st1.executeQuery(sqlScript1);
+                        HashMap<Integer, Date> tripDate = new HashMap<>();
+                        while (rs1.next()){
+                            tripDate.put(rs1.getInt("TripId"), rs1.getDate("TripDate"));
+                        }
+                        Date currentTripDate = tripDate.get(tripId);
+                        monthPickerTitle.setText(format.format(currentTripDate));
+
+
+
+                        String sqlScript2 = "SELECT Category, Amount FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
+                        Statement st2 = connection.createStatement();
+                        ResultSet rs2 = st2.executeQuery(sqlScript2);
+                        while(rs2.next()){
+                            arrayOfActivities.add(new Activity(rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount"))));
+                        }
+
+
+                        listView.setAdapter(adapter);
+                    }
+                }
+                catch (Exception exception){
+                    Log.e("Error", exception.getMessage());
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         return view;
     }
@@ -66,24 +219,6 @@ public class DashboardFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-    }
-
-    public void setDate(Boolean isPrev){
-        TextView monthPickerTitle = getView().findViewById(R.id.monthPickerTitle);
-        try {
-            Date dt = format.parse(monthPickerTitle.getText().toString());
-            Calendar cal = Calendar.getInstance();
-            assert dt != null;
-            cal.setTime(dt);
-            if(isPrev) {
-                cal.add(Calendar.DAY_OF_MONTH, -1);
-            } else {
-                cal.add(Calendar.DAY_OF_MONTH, 1);
-            }
-            monthPickerTitle.setText(format.format(cal.getTime()));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
     }
 
     @SuppressLint("NewApi")

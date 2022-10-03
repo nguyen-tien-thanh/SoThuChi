@@ -20,8 +20,6 @@ class ActivitiesAdapter extends ArrayAdapter<Activity> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-
-        // Check if an existing view is being reused, otherwise inflate the view
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.activity_list_view, parent, false);
         }
