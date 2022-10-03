@@ -70,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(binding.navView, navController);
     }
 
-    // Create Transaction
-    public void saveTransaction (View view){
+    // Create activity
+    public void saveActivity (View view){
         dateButton = findViewById(R.id.editDate);
         Spinner spinner = (Spinner)findViewById(R.id.spinnerTrip);
         TextView note = (TextView)findViewById(R.id.editNote);
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 Integer tripId = tripData.get(compareValue);
 
 
-                String sqlScript2 = "Insert into Transactions (IssueDate, Note, Amount, TransactionType, TripId) values ('"
+                String sqlScript2 = "Insert into Activity (IssueDate, Note, Amount, Category, TripId) values ('"
                         +dateButton.getText().toString()+"','"
                         +note.getText().toString()+"','"
                         +money.getText().toString()+"','"

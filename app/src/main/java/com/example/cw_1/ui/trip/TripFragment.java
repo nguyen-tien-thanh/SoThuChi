@@ -4,13 +4,19 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.cw_1.R;
 import com.example.cw_1.databinding.FragmentTripBinding;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class TripFragment extends Fragment {
 
@@ -18,12 +24,18 @@ public class TripFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        TripViewModel notificationsViewModel =
-                new ViewModelProvider(this).get(TripViewModel.class);
+        LayoutInflater lf = getActivity().getLayoutInflater();
+        View view =  lf.inflate(R.layout.fragment_trip, container, false);
 
-        binding = FragmentTripBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
-        return root;
+        Calendar cal = Calendar.getInstance();
+        Date dt = cal.getTime();
+
+        SimpleDateFormat format = new SimpleDateFormat("MMM dd yyyy");
+        Button editTripDate = (Button)view.findViewById(R.id.editTripDate);
+
+        editTripDate.setText(format.format(dt));
+
+        return view;
     }
 
     @Override

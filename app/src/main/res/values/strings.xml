@@ -41,4 +41,8 @@
     <string name="title_item_abode">Abode</string>
     <string name="title_item_printing">Printing</string>
     <string name="title_item_transportation">Transportation</string>
+
+
+    <string name="title_activity">Activity</string>
+
 </resources>

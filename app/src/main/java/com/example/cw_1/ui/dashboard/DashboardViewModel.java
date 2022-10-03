@@ -1,19 +1,37 @@
 package com.example.cw_1.ui.dashboard;
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.TextView;
 
-public class DashboardViewModel extends ViewModel {
 
-    private final MutableLiveData<String> mText;
+import com.example.cw_1.R;
+import com.example.cw_1.models.Activity;
 
-    public DashboardViewModel() {
-        mText = new MutableLiveData<>();
-        mText.setValue("This is dashboard fragment");
+import java.util.ArrayList;
+
+class ActivitiesAdapter extends ArrayAdapter<Activity> {
+    public ActivitiesAdapter(Context context, ArrayList<Activity> activities) {
+        super(context, 0, activities);
     }
 
-    public LiveData<String> getText() {
-        return mText;
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+
+        // Check if an existing view is being reused, otherwise inflate the view
+        if (convertView == null) {
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.activity_list_view, parent, false);
+        }
+
+        Activity activity = getItem(position);
+
+        TextView tvCategory = convertView.findViewById(R.id.tvCategory);
+        TextView tvAmount = convertView.findViewById(R.id.tvAmount);
+        tvCategory.setText(activity.getCategory());
+        tvAmount.setText(activity.getAmount().toString());
+        return convertView;
     }
 }

@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -22,7 +23,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 public class HomeFragment extends Fragment {
 
@@ -33,6 +37,12 @@ public class HomeFragment extends Fragment {
         LayoutInflater lf = getActivity().getLayoutInflater();
         View view =  lf.inflate(R.layout.fragment_home, container, false);
 
+        // Date first set
+        Calendar cal = Calendar.getInstance();
+        Date dt = cal.getTime();
+        SimpleDateFormat format = new SimpleDateFormat("MMM dd yyyy");
+        Button editTripDate = (Button)view.findViewById(R.id.editDate);
+        editTripDate.setText(format.format(dt));
 
         Spinner spinner = (Spinner)view.findViewById(R.id.spinnerTrip);
         Connection connection = connectionClass();
