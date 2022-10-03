@@ -21,6 +21,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -47,6 +48,11 @@ public class DashboardFragment extends Fragment {
         Button btnNext = (Button)view.findViewById(R.id.btnNextDay);
 
         btnPrev.setOnClickListener(v -> {
+            setDate(true);
+        });
+
+        btnNext.setOnClickListener(v -> {
+            setDate(false);
         });
 
         return view;
@@ -58,51 +64,20 @@ public class DashboardFragment extends Fragment {
         binding = null;
     }
 
-    public int getDay(String s){
-        return Integer.parseInt(s.substring(0,1));
-    }
-
-    public int getMonth(String s){
-        String month = s.substring(3, 6);
-        if (month == "Jan"){
-            return 1;
+    public void setDate(Boolean isPrev){
+        TextView monthPickerTitle = (TextView)getView().findViewById(R.id.monthPickerTitle);
+        try {
+            Date dt = format.parse(monthPickerTitle.getText().toString());
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(dt);
+            if(isPrev) {
+                cal.add(Calendar.DAY_OF_MONTH, -1);
+            } else {
+                cal.add(Calendar.DAY_OF_MONTH, 1);
+            }
+            monthPickerTitle.setText(format.format(cal.getTime()));
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
-        else if (month == "Feb"){
-            return 2;
-        }
-        else if (month == "Mar"){
-            return 3;
-        }
-        else if (month == "Apr"){
-            return 4;
-        }
-        else if (month == "May"){
-            return 5;
-        }
-        else if (month == "Jun"){
-            return 6;
-        }
-        else if (month == "Jul"){
-            return 7;
-        }
-        else if (month == "Aug"){
-            return 8;
-        }
-        else if (month == "Sep"){
-            return 9;
-        }
-        else if (month == "Oct"){
-            return 10;
-        }
-        else if (month == "Nov"){
-            return 11;
-        }
-        else {
-            return 12;
-        }
-    }
-
-    public int getYear(String i){
-        return Integer.parseInt(i.substring(7,10));
     }
 }
