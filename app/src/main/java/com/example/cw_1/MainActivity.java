@@ -1,16 +1,18 @@
 package com.example.cw_1;
 
-import static java.lang.Integer.parseInt;
+
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CalendarView;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -28,23 +30,21 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.cw_1.databinding.ActivityMainBinding;
 
-import org.joda.time.DateTime;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
+
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
+
 import java.util.HashMap;
 
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
-    private Button dateButton;
     private DatePickerDialog datePickerDialog;
 
     @Override
@@ -56,10 +56,11 @@ public class MainActivity extends AppCompatActivity {
 
         // DATE PICKER
         initDatePicker();
-        //dateButton.setText(getTodayDate());
 
         //Spinner data
         FillSpinner();
+
+
 
         BottomNavigationView navView = findViewById(R.id.nav_view);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
@@ -72,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Create activity
     public void saveActivity (View view){
-        dateButton = findViewById(R.id.editDate);
+        Button dateButton = findViewById(R.id.editDate);
         Spinner spinner = (Spinner)findViewById(R.id.spinnerTrip);
         TextView note = (TextView)findViewById(R.id.editNote);
         TextView money = (TextView)findViewById(R.id.editMoney);
@@ -103,6 +104,8 @@ public class MainActivity extends AppCompatActivity {
                 Statement st2 = connection.createStatement();
                 ResultSet rs2 = st2.executeQuery(sqlScript2);
 
+                Toast.makeText(this, "Created successful!!!", Toast.LENGTH_SHORT).show();
+
             }
         }
         catch (Exception exception){
@@ -112,21 +115,24 @@ public class MainActivity extends AppCompatActivity {
 
     // Create Trip
     public void saveTrip(View view){
+        // Calendar view
+        Intent incomingIntent = getIntent();
+        String tripDate = incomingIntent.getStringExtra("tripDate");
+
         Connection connection = connectionClass();
-        TextView tripName = (TextView)findViewById(R.id.editTripName);
-        TextView destination = (TextView)findViewById(R.id.editDestination);
-        TextView description = (TextView)findViewById(R.id.editDescription);
+        TextView tripName = findViewById(R.id.editTripName);
+        TextView destination = findViewById(R.id.editDestination);
+        TextView description = findViewById(R.id.editDescription);
         Boolean switchValue = ((Switch) findViewById(R.id.switchRiskAssessment)).isChecked();
 
-        dateButton = findViewById(R.id.editTripDate);
-        //dateButton.setText(getTodayDate());
+        //CalendarView tripDate = findViewById(R.id.editTripDate);
 
                 try{
                     if(connection != null){
                         String sqlScript = "Insert into Trip (TripName, Destination, TripDate, RiskAssessment, Description ) values ('"
                                 +tripName.getText().toString()+"','"
                                 +destination.getText().toString()+"','"
-                                +dateButton.getText().toString()+"','"
+                                +tripDate+"','"
                                 +switchValue+"','"
                                 +description.getText().toString()+"')";
                         Statement st = connection.createStatement();
@@ -168,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("NonConstantResourceId")
     public void chooseCategory(View v){
-        EditText editCategory = (EditText)findViewById(R.id.editCategory);
+        EditText editCategory = findViewById(R.id.editCategory);
         //Remove style all category
         removeBackgroundCategory(R.id.category_row_1);
         removeBackgroundCategory(R.id.category_row_2);
@@ -223,11 +229,12 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void initDatePicker() {
+        Button dateButton = (Button)findViewById(R.id.editDate);
         DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
                 month = month + 1;
-                String date = makeDateString(day, month, year);
+                String date = getMonthFormat(month) + " " + day + " " + year;
                 dateButton.setText(date);
             }
         };
@@ -239,58 +246,28 @@ public class MainActivity extends AppCompatActivity {
         int style = AlertDialog.THEME_HOLO_LIGHT;
         datePickerDialog = new DatePickerDialog(this, style, dateSetListener, year, month, day);
         datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
-
-    }
-
-    private String makeDateString(int day, int month, int year) {
-        return year + "-" + getMonthFormat(month) + "-" + day;
-        //return getMonthFormat(month) + " " + day + " " + year;
     }
 
     private String getMonthFormat(int month) {
-        if (month == 1){
-            return "01";
-        }
-        if (month == 2){
-            return "02";
-        }
-        if (month == 3){
-            return "03";
-        }
-        if (month == 4){
-            return "04";
-        }
-        if (month == 5){
-            return "05";
-        }
-        if (month == 6){
-            return "06";
-        }
-        if (month == 7){
-            return "07";
-        }
-        if (month == 8){
-            return "08";
-        }
-        if (month == 9){
-            return "09";
-        }
-        if (month == 10){
-            return "10";
-        }
-        if (month == 11){
-            return "11";
-        }
-        if (month == 12){
-            return "12";
-        }
-        return "01";
+        if (month == 1){return "Jan";}
+        if (month == 2){return "Feb";}
+        if (month == 3){return "Mar";}
+        if (month == 4){return "Apr";}
+        if (month == 5){return "May";}
+        if (month == 6){return "Jun";}
+        if (month == 7){return "Jul";}
+        if (month == 8){return "Aug";}
+        if (month == 9){return "Sep";}
+        if (month == 10){return "Oct";}
+        if (month == 11){return "Nov";}
+        if (month == 12){return "Dec";}
+        return "Jan";
     }
 
     public void openDatePicker(View view){
         datePickerDialog.show();
     }
-
+    //public void openTripDatePicker(View view){ tripDatePickerDialog.show();}
 
     @SuppressLint("NewApi")
     public Connection connectionClass() {

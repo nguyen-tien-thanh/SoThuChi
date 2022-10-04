@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.example.cw_1.R;
 import com.example.cw_1.models.Activity;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 class ActivitiesAdapter extends ArrayAdapter<Activity> {
@@ -29,7 +30,13 @@ class ActivitiesAdapter extends ArrayAdapter<Activity> {
         TextView tvCategory = convertView.findViewById(R.id.tvCategory);
         TextView tvAmount = convertView.findViewById(R.id.tvAmount);
         tvCategory.setText(activity.getCategory());
-        tvAmount.setText(activity.getAmount().toString());
+        tvAmount.setText(currencyFormat(activity.getAmount().toString()));
         return convertView;
     }
+
+    public static String currencyFormat(String amount) {
+        DecimalFormat formatter = new DecimalFormat("$ #,###");
+        return formatter.format(Double.parseDouble(amount));
+    }
+
 }
