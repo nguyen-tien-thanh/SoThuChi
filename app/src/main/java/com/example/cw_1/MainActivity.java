@@ -36,9 +36,11 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import java.util.Date;
 import java.util.HashMap;
 
 
@@ -82,34 +84,40 @@ public class MainActivity extends AppCompatActivity {
         Connection connection = connectionClass();
         String compareValue = spinner.getSelectedItem().toString();
 
-        try{
-            if(connection != null){
-                String sqlScript = "Select * from Trip";
-                Statement st = connection.createStatement();
-                ResultSet rs = st.executeQuery(sqlScript);
+        if(money.getText().toString() == null || money.getText().toString().length() == 0 ){
+            Toast.makeText(this, "Money can not be null", Toast.LENGTH_SHORT).show();
+        } else if (category.getText().toString().length() == 0 || category.getText().toString() == null) {
+            Toast.makeText(this, "Category can not be null", Toast.LENGTH_SHORT).show();
+        } else {
+            try {
+                if (connection != null) {
+                    String sqlScript = "Select * from Trip";
+                    Statement st = connection.createStatement();
+                    ResultSet rs = st.executeQuery(sqlScript);
 
-                HashMap<String, Integer> tripData = new HashMap<>();
-                while(rs.next()){
-                    tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
+                    HashMap<String, Integer> tripData = new HashMap<>();
+                    while (rs.next()) {
+                        tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
+                    }
+                    Integer tripId = tripData.get(compareValue);
+
+
+                    String sqlScript2 = "Insert into Activity (IssueDate, Note, Amount, Category, TripId) values ('"
+                            + dateButton.getText().toString() + "','"
+                            + note.getText().toString() + "','"
+                            + money.getText().toString() + "','"
+                            + category.getText().toString() + "','"
+                            + tripId.toString() + "')";
+                    Statement st2 = connection.createStatement();
+                    st2.executeUpdate(sqlScript2);
+
+                    Toast.makeText(this, "Created successful!!!", Toast.LENGTH_SHORT).show();
+
                 }
-                Integer tripId = tripData.get(compareValue);
-
-
-                String sqlScript2 = "Insert into Activity (IssueDate, Note, Amount, Category, TripId) values ('"
-                        +dateButton.getText().toString()+"','"
-                        +note.getText().toString()+"','"
-                        +money.getText().toString()+"','"
-                        +category.getText().toString()+"','"
-                        +tripId.toString()+"')";
-                Statement st2 = connection.createStatement();
-                ResultSet rs2 = st2.executeQuery(sqlScript2);
-
-                Toast.makeText(this, "Created successful!!!", Toast.LENGTH_SHORT).show();
-
+            } catch (Exception exception) {
+                Log.e("Error", exception.getMessage());
+                Toast.makeText(this, "Save failed !!!", Toast.LENGTH_SHORT).show();
             }
-        }
-        catch (Exception exception){
-            Log.e("Error", exception.getMessage());
         }
     }
 
@@ -118,6 +126,12 @@ public class MainActivity extends AppCompatActivity {
         // Calendar view
         Intent incomingIntent = getIntent();
         String tripDate = incomingIntent.getStringExtra("tripDate");
+        if(tripDate == null) {
+            Calendar cal = Calendar.getInstance();
+            Date dt = cal.getTime();
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            tripDate = format.format(dt);
+        }
 
         Connection connection = connectionClass();
         TextView tripName = findViewById(R.id.editTripName);
@@ -125,23 +139,28 @@ public class MainActivity extends AppCompatActivity {
         TextView description = findViewById(R.id.editDescription);
         Boolean switchValue = ((Switch) findViewById(R.id.switchRiskAssessment)).isChecked();
 
-        //CalendarView tripDate = findViewById(R.id.editTripDate);
-
-                try{
-                    if(connection != null){
-                        String sqlScript = "Insert into Trip (TripName, Destination, TripDate, RiskAssessment, Description ) values ('"
-                                +tripName.getText().toString()+"','"
-                                +destination.getText().toString()+"','"
-                                +tripDate+"','"
-                                +switchValue+"','"
-                                +description.getText().toString()+"')";
-                        Statement st = connection.createStatement();
-                        ResultSet rs = st.executeQuery(sqlScript);
-                    }
+        if(tripName.getText().toString() == null || tripName.getText().toString().length() == 0 ){
+            Toast.makeText(this, "Trip name can not be null", Toast.LENGTH_SHORT).show();
+        } else if (destination.getText().toString().length() == 0 || destination.getText().toString() == null) {
+            Toast.makeText(this, "Destination can not be null", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            try{
+                if(connection != null){
+                    String sqlScript = "Insert into Trip (TripName, Destination, TripDate, RiskAssessment, Description ) values ('"
+                            +tripName.getText().toString()+"','"
+                            +destination.getText().toString()+"','"
+                            +tripDate+"','"
+                            +switchValue+"','"
+                            +description.getText().toString()+"')";
+                    Statement st = connection.createStatement();
+                    st.executeQuery(sqlScript);
                 }
-                catch (Exception exception) {
-                    Log.e("Error", exception.getMessage());
-                }
+            }
+            catch (Exception exception) {
+                Log.e("Error", exception.getMessage());
+            }
+        }
     }
 
     //Fill spinner
