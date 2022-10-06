@@ -62,8 +62,8 @@ public class DashboardFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                System.out.println("MONEYYYYYYYYYYY: "+ arrayOfActivities.get(i).getIssueDate());
                 Intent intent = new Intent(getActivity(), ItemDetailActivity.class);
+                intent.putExtra("id", arrayOfActivities.get(i).getId());
                 intent.putExtra("category", arrayOfActivities.get(i).getCategory());
                 intent.putExtra("money", arrayOfActivities.get(i).getMoney());
                 intent.putExtra("date", arrayOfActivities.get(i).getIssueDate());
@@ -124,11 +124,11 @@ public class DashboardFragment extends Fragment {
                     }
                     Integer tripId = tripData.get(selectedItem);
 
-                    String sqlScript2 = "SELECT Category, Amount, IssueDate ,Note FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
+                    String sqlScript2 = "SELECT * FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
                     Statement st2 = connection.createStatement();
                     ResultSet rs2 = st2.executeQuery(sqlScript2);
                     while(rs2.next()){
-                        arrayOfActivities.add(new Activity(rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
+                        arrayOfActivities.add(new Activity(Integer.parseInt(rs2.getString("Id")),rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
                     }
                     listView.setAdapter(adapter);
                 }
@@ -158,11 +158,11 @@ public class DashboardFragment extends Fragment {
                     }
                     Integer tripId = tripData.get(selectedItem);
 
-                    String sqlScript2 = "SELECT Category, Amount, IssueDate ,Note FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
+                    String sqlScript2 = "SELECT * FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
                     Statement st2 = connection.createStatement();
                     ResultSet rs2 = st2.executeQuery(sqlScript2);
                     while(rs2.next()){
-                        arrayOfActivities.add(new Activity(rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
+                        arrayOfActivities.add(new Activity(Integer.parseInt(rs2.getString("Id")),rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
                     }
                     listView.setAdapter(adapter);
                 }
@@ -205,11 +205,11 @@ public class DashboardFragment extends Fragment {
 
 
 
-                        String sqlScript2 = "SELECT Category, Amount, IssueDate ,Note FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
+                        String sqlScript2 = "SELECT * FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
                         Statement st2 = connection.createStatement();
                         ResultSet rs2 = st2.executeQuery(sqlScript2);
                         while(rs2.next()){
-                            arrayOfActivities.add(new Activity(rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
+                            arrayOfActivities.add(new Activity(Integer.parseInt(rs2.getString("Id")),rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
                         }
 
 

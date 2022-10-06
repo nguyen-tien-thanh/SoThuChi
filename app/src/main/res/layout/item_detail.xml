@@ -13,7 +13,7 @@ tools:context=".ItemDetailActivity">
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/textView12"
+        android:id="@+id/titleItemDetail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
@@ -213,7 +213,7 @@ tools:context=".ItemDetailActivity">
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/btnCancelUpdate"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
@@ -222,7 +222,7 @@ tools:context=".ItemDetailActivity">
             />
 
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/btnUpdate"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"

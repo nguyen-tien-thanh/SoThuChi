@@ -4,17 +4,21 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class Activity {
+    private Integer id;
     private String category;
     private Integer money;
     private Date issueDate;
     private String note;
 
-    public Activity(String category, Integer money, Date issueDate, String note) {
+    public Activity(Integer id, String category, Integer money, Date issueDate, String note) {
+        this.id = id;
         this.category = category;
         this.money = money;
         this.issueDate = issueDate;
         this.note = note;
     }
+
+    public Integer getId(){return id;}
 
     public String getCategory(){return category;}
 
