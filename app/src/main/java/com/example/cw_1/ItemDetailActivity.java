@@ -39,6 +39,8 @@ public class ItemDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.item_detail);
 
+        setTitle("Update activity");
+
 
         category = findViewById(R.id.updateCategory);
         money = findViewById(R.id.updateMoney);
@@ -104,6 +106,7 @@ public class ItemDetailActivity extends AppCompatActivity {
                         Statement st = connection.createStatement();
                         st.executeUpdate(sqlScript);
                         Toast.makeText(this, "Update successful !!!", Toast.LENGTH_SHORT).show();
+                        finish();
                     }
                 }
             }

@@ -97,6 +97,61 @@ public class DashboardFragment extends Fragment {
             Log.e("Error", exception.getMessage());
         }
 
+        // Btn delete trip
+        Button btnDeleteTrip = view.findViewById(R.id.btnDeleteTrip);
+        btnDeleteTrip.setOnClickListener(v->{
+            try{
+                if(connection != null){
+
+                    String selectedItem = spinner.getSelectedItem().toString();
+                    String sqlScript = "Select * from Trip";
+                    Statement st = connection.createStatement();
+                    ResultSet rs = st.executeQuery(sqlScript);
+
+                    HashMap<String, Integer> tripData = new HashMap<>();
+                    while(rs.next()){
+                        tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
+                    }
+                    Integer tripId = tripData.get(selectedItem);
+
+                    String sqlScript2 = "DELETE FROM Trip Where TripId = " + tripId;
+
+                    Statement st2 = connection.createStatement();
+                    st2.executeQuery(sqlScript2);
+
+                    Toast.makeText(getActivity().getBaseContext(), "Delete trip successful !!!", Toast.LENGTH_SHORT).show();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        });
+
+        // Btn delete trip
+        Button btnDeleteActivities = view.findViewById(R.id.btnDeleteActivities);
+        btnDeleteActivities.setOnClickListener(v->{
+            try{
+                if(connection != null){
+                    String selectedItem = spinner.getSelectedItem().toString();
+                    String sqlScript = "Select * from Trip";
+                    Statement st = connection.createStatement();
+                    ResultSet rs = st.executeQuery(sqlScript);
+                    HashMap<String, Integer> tripData = new HashMap<>();
+                    while(rs.next()){
+                        tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
+                    }
+                    Integer tripId = tripData.get(selectedItem);
+                    String sqlScript2 = "DELETE FROM Activity Where TripId = " + tripId;
+                    Statement st2 = connection.createStatement();
+                    st2.executeQuery(sqlScript2);
+
+                    Toast.makeText(getActivity().getBaseContext(), "Delete activities in "+ rs.getString("TripName")+" successful !!!", Toast.LENGTH_SHORT).show();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        });
 
 
         //Btn prev, next date clicked
