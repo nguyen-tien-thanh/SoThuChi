@@ -30,7 +30,7 @@ class ActivitiesAdapter extends ArrayAdapter<Activity> {
         TextView tvCategory = convertView.findViewById(R.id.tvCategory);
         TextView tvAmount = convertView.findViewById(R.id.tvAmount);
         tvCategory.setText(activity.getCategory());
-        tvAmount.setText(currencyFormat(activity.getAmount().toString()));
+        tvAmount.setText(currencyFormat(activity.getMoney().toString()));
         return convertView;
     }
 

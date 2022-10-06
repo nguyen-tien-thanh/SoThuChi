@@ -71,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
+
+
     }
 
     // Create activity
@@ -112,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
                     st2.executeUpdate(sqlScript2);
 
                     Toast.makeText(this, "Created successful!!!", Toast.LENGTH_SHORT).show();
-
                 }
             } catch (Exception exception) {
                 Log.e("Error", exception.getMessage());
@@ -286,7 +287,6 @@ public class MainActivity extends AppCompatActivity {
     public void openDatePicker(View view){
         datePickerDialog.show();
     }
-    //public void openTripDatePicker(View view){ tripDatePickerDialog.show();}
 
     @SuppressLint("NewApi")
     public Connection connectionClass() {

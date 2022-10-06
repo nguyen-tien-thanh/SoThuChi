@@ -1,6 +1,7 @@
 package com.example.cw_1.ui.dashboard;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
@@ -9,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -18,11 +20,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.example.cw_1.MainActivity;
+import com.example.cw_1.ItemDetailActivity;
 import com.example.cw_1.R;
 import com.example.cw_1.models.Activity;
-import com.google.android.material.navigation.NavigationBarView;
-
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -51,12 +51,26 @@ public class DashboardFragment extends Fragment {
         String timeStamp = format.format(Calendar.getInstance().getTime());
         monthPickerTitle.setText(timeStamp);
 
-
         //Set data activities
         ArrayList<Activity> arrayOfActivities = Activity.getActivities();
         ActivitiesAdapter adapter = new ActivitiesAdapter(getActivity().getBaseContext(), arrayOfActivities);
         ListView listView = (ListView)view.findViewById(R.id.listActivity);
         listView.setAdapter(adapter);
+
+
+        // Item in listview clicked
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                System.out.println("MONEYYYYYYYYYYY: "+ arrayOfActivities.get(i).getIssueDate());
+                Intent intent = new Intent(getActivity(), ItemDetailActivity.class);
+                intent.putExtra("category", arrayOfActivities.get(i).getCategory());
+                intent.putExtra("money", arrayOfActivities.get(i).getMoney());
+                intent.putExtra("date", arrayOfActivities.get(i).getIssueDate());
+                intent.putExtra("note", arrayOfActivities.get(i).getNote());
+                startActivity(intent);
+            }
+        });
 
         // Set data of trip
         Spinner spinner = view.findViewById(R.id.spinnerTripActivity);
@@ -110,11 +124,11 @@ public class DashboardFragment extends Fragment {
                     }
                     Integer tripId = tripData.get(selectedItem);
 
-                    String sqlScript2 = "SELECT Category, Amount FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
+                    String sqlScript2 = "SELECT Category, Amount, IssueDate ,Note FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
                     Statement st2 = connection.createStatement();
                     ResultSet rs2 = st2.executeQuery(sqlScript2);
                     while(rs2.next()){
-                        arrayOfActivities.add(new Activity(rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount"))));
+                        arrayOfActivities.add(new Activity(rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
                     }
                     listView.setAdapter(adapter);
                 }
@@ -144,11 +158,11 @@ public class DashboardFragment extends Fragment {
                     }
                     Integer tripId = tripData.get(selectedItem);
 
-                    String sqlScript2 = "SELECT Category, Amount FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
+                    String sqlScript2 = "SELECT Category, Amount, IssueDate ,Note FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
                     Statement st2 = connection.createStatement();
                     ResultSet rs2 = st2.executeQuery(sqlScript2);
                     while(rs2.next()){
-                        arrayOfActivities.add(new Activity(rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount"))));
+                        arrayOfActivities.add(new Activity(rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
                     }
                     listView.setAdapter(adapter);
                 }
@@ -191,11 +205,11 @@ public class DashboardFragment extends Fragment {
 
 
 
-                        String sqlScript2 = "SELECT Category, Amount FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
+                        String sqlScript2 = "SELECT Category, Amount, IssueDate ,Note FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
                         Statement st2 = connection.createStatement();
                         ResultSet rs2 = st2.executeQuery(sqlScript2);
                         while(rs2.next()){
-                            arrayOfActivities.add(new Activity(rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount"))));
+                            arrayOfActivities.add(new Activity(rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
                         }
 
 

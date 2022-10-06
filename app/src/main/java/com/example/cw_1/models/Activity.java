@@ -5,32 +5,31 @@ import java.util.Date;
 
 public class Activity {
     private String category;
-    private Integer amount;
+    private Integer money;
     private Date issueDate;
+    private String note;
 
-    public Activity(String category, Integer amount) {
+    public Activity(String category, Integer money, Date issueDate, String note) {
         this.category = category;
-        this.amount = amount;
-//        this.issueDate = issueDate;
+        this.money = money;
+        this.issueDate = issueDate;
+        this.note = note;
     }
 
-    public String getCategory(){
-        return category;
-    }
+    public String getCategory(){return category;}
 
-    public Integer getAmount(){
-        return amount;
+    public Integer getMoney(){
+        return money;
     }
 
     public Date getIssueDate(){
         return issueDate;
     }
 
+    public String getNote(){return note;}
+
     public static ArrayList<Activity> getActivities() {
         ArrayList<Activity> activities = new ArrayList<Activity>();
-        activities.add(new Activity("Breakfast", 10000));
-        activities.add(new Activity("Lunch", 30000));
-        activities.add(new Activity("Dinner", 20000));
         return activities;
     }
 }
