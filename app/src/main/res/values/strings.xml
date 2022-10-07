@@ -3,6 +3,8 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+    <string name="title_search">Search</string>
+    <string name="hint_search">Search for trip, activity, …</string>
 
 
     <string name="title_expense">Expense</string>

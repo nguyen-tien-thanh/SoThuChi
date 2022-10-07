@@ -6,6 +6,11 @@
     app:startDestination="@+id/navigation_activity">
 
     <fragment
+        android:id="@+id/navigation_search"
+        android:name="com.example.cw_1.ui.search.SearchFragment"
+        android:label="@string/title_search"
+        tools:layout="@layout/fragment_search" />
+    <fragment
         android:id="@+id/navigation_dashboard"
         android:name="com.example.cw_1.ui.dashboard.DashboardFragment"
         android:label="@string/title_dashboard"
