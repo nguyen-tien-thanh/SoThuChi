@@ -102,6 +102,16 @@
             android:layout_gravity="center"
             android:textColor="@color/black"
             android:text="There are no activities for the day of this trip !!" />
+        <TextView
+            android:id="@+id/checkExistList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:visibility="gone"
+            android:textSize="20dp"
+            android:layout_gravity="center"
+            android:textColor="@color/black"
+            android:text="No trips have been created yet !!" />
 
         <LinearLayout
             android:layout_width="match_parent"

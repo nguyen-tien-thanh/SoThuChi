@@ -71,8 +71,6 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
-
-
     }
 
     // Create activity
@@ -84,15 +82,18 @@ public class MainActivity extends AppCompatActivity {
         TextView category = (TextView)findViewById(R.id.editCategory);
 
         Connection connection = connectionClass();
-        String compareValue = spinner.getSelectedItem().toString();
-
-        if(money.getText().toString() == null || money.getText().toString().length() == 0 ){
+        String compareValue;
+        if(spinner.getSelectedItem() == null ){
+            Toast.makeText(this, "You need to create Trip first", Toast.LENGTH_SHORT).show();
+        } else if(money.getText().toString() == null || money.getText().toString().length() == 0 ){
             Toast.makeText(this, "Money can not be null", Toast.LENGTH_SHORT).show();
         } else if (category.getText().toString().length() == 0 || category.getText().toString() == null) {
             Toast.makeText(this, "Category can not be null", Toast.LENGTH_SHORT).show();
         } else {
             try {
                 if (connection != null) {
+                    compareValue = spinner.getSelectedItem().toString();
+
                     String sqlScript = "Select * from Trip";
                     Statement st = connection.createStatement();
                     ResultSet rs = st.executeQuery(sqlScript);
@@ -155,7 +156,8 @@ public class MainActivity extends AppCompatActivity {
                             +switchValue+"','"
                             +description.getText().toString()+"')";
                     Statement st = connection.createStatement();
-                    st.executeQuery(sqlScript);
+                    st.executeUpdate(sqlScript);
+                    Toast.makeText(this, "Create successful !!", Toast.LENGTH_SHORT).show();
                 }
             }
             catch (Exception exception) {

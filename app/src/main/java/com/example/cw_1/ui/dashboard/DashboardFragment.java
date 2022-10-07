@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 import com.example.cw_1.ItemDetailActivity;
 import com.example.cw_1.R;
@@ -46,9 +47,12 @@ public class DashboardFragment extends Fragment {
         LayoutInflater lf = getActivity().getLayoutInflater();
         View view =  lf.inflate(R.layout.fragment_dashboard, container, false);
 
-        TextView check = view.findViewById(R.id.checkExistActivity);
+        Connection connection = connectionClass();
+
+        TextView checkExistActivity = view.findViewById(R.id.checkExistActivity);
         TextView monthPickerTitle = view.findViewById(R.id.monthPickerTitle);
         String timeStamp = format.format(Calendar.getInstance().getTime());
+        Spinner spinner = view.findViewById(R.id.spinnerTripActivity);
         monthPickerTitle.setText(timeStamp);
 
         //Set data activities
@@ -58,7 +62,7 @@ public class DashboardFragment extends Fragment {
         listView.setAdapter(adapter);
         if(arrayOfActivities.isEmpty())
         {
-            check.setVisibility(View.VISIBLE);
+            checkExistActivity.setVisibility(View.GONE);
         }
 
 
@@ -73,30 +77,6 @@ public class DashboardFragment extends Fragment {
             startActivity(intent);
         });
 
-        // Set data of trip
-        Spinner spinner = view.findViewById(R.id.spinnerTripActivity);
-        Connection connection = connectionClass();
-        try{
-            if(connection != null){
-                String sqlScript = "Select * from trip";
-                Statement st = connection.createStatement();
-                ResultSet rs = st.executeQuery(sqlScript);
-
-                ArrayList<String> data = new ArrayList<>();
-                while (rs.next()){
-                    String TripName = rs.getString("TripName") + " in " + rs.getString("Destination");
-                    data.add(TripName);
-                }
-
-                ArrayAdapter<String> array = new ArrayAdapter<>(getActivity().getBaseContext(), android.R.layout.simple_spinner_item, data);
-                array.setDropDownViewResource(android.R.layout
-                        .simple_spinner_dropdown_item);
-                spinner.setAdapter(array);
-            }
-        }
-        catch (Exception exception){
-            Log.e("Error", exception.getMessage());
-        }
 
         // Btn delete trip
         Button btnDeleteTrip = view.findViewById(R.id.btnDeleteTrip);
@@ -116,11 +96,13 @@ public class DashboardFragment extends Fragment {
                     Integer tripId = tripData.get(selectedItem);
 
                     String sqlScript2 = "DELETE FROM Trip Where TripId = " + tripId;
-
                     Statement st2 = connection.createStatement();
-                    st2.executeQuery(sqlScript2);
+                    st2.executeUpdate(sqlScript2);
 
                     Toast.makeText(getActivity().getBaseContext(), "Delete trip successful !!!", Toast.LENGTH_SHORT).show();
+
+                    Navigation.findNavController(view).navigate(R.id.navigation_dashboard);
+
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -146,9 +128,9 @@ public class DashboardFragment extends Fragment {
                     Statement st2 = connection.createStatement();
                     st2.executeUpdate(sqlScript2);
 
-                    check.setVisibility(View.VISIBLE);
-                    ListView list = view.findViewById(R.id.listActivity);
-                    list.setVisibility(View.GONE);
+                    checkExistActivity.setVisibility(View.VISIBLE);
+                    //ListView list = view.findViewById(R.id.listActivity);
+                    listView.setVisibility(View.GONE);
 
                     Toast.makeText(getActivity().getBaseContext(), "Delete activities successful !!!", Toast.LENGTH_SHORT).show();
                 }
@@ -232,6 +214,41 @@ public class DashboardFragment extends Fragment {
                 e.printStackTrace();
             }
         });
+
+        // Set data of trip
+        try{
+            if(connection != null){
+                String sqlScript = "Select * from trip";
+                Statement st = connection.createStatement();
+                ResultSet rs = st.executeQuery(sqlScript);
+
+                ArrayList<String> data = new ArrayList<>();
+                while (rs.next()){
+                    String TripName = rs.getString("TripName") + " in " + rs.getString("Destination");
+                    data.add(TripName);
+                }
+
+                ArrayAdapter<String> array = new ArrayAdapter<>(getActivity().getBaseContext(), android.R.layout.simple_spinner_item, data);
+                array.setDropDownViewResource(android.R.layout
+                        .simple_spinner_dropdown_item);
+                spinner.setAdapter(array);
+
+                int count = spinner.getAdapter() != null ? spinner.getAdapter().getCount() : 0;
+                TextView checkExistList = view.findViewById(R.id.checkExistList);
+                if (count == 0){
+                    btnDeleteActivities.setEnabled(false);
+                    btnDeleteTrip.setEnabled(false);
+                    btnNext.setEnabled(false);
+                    btnPrev.setEnabled(false);
+                    checkExistList.setVisibility(View.VISIBLE);
+                    checkExistActivity.setVisibility(View.GONE);
+                }
+            }
+        }
+        catch (Exception exception){
+            Log.e("Error", exception.getMessage());
+        }
+
 
         // Event on choosing trip from spinner
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
