@@ -10,7 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -47,6 +46,7 @@ public class DashboardFragment extends Fragment {
         LayoutInflater lf = getActivity().getLayoutInflater();
         View view =  lf.inflate(R.layout.fragment_dashboard, container, false);
 
+        TextView check = view.findViewById(R.id.checkExistActivity);
         TextView monthPickerTitle = view.findViewById(R.id.monthPickerTitle);
         String timeStamp = format.format(Calendar.getInstance().getTime());
         monthPickerTitle.setText(timeStamp);
@@ -56,20 +56,21 @@ public class DashboardFragment extends Fragment {
         ActivitiesAdapter adapter = new ActivitiesAdapter(getActivity().getBaseContext(), arrayOfActivities);
         ListView listView = (ListView)view.findViewById(R.id.listActivity);
         listView.setAdapter(adapter);
+        if(arrayOfActivities.isEmpty())
+        {
+            check.setVisibility(View.VISIBLE);
+        }
 
 
         // Item in listview clicked
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent = new Intent(getActivity(), ItemDetailActivity.class);
-                intent.putExtra("id", arrayOfActivities.get(i).getId());
-                intent.putExtra("category", arrayOfActivities.get(i).getCategory());
-                intent.putExtra("money", arrayOfActivities.get(i).getMoney());
-                intent.putExtra("date", arrayOfActivities.get(i).getIssueDate());
-                intent.putExtra("note", arrayOfActivities.get(i).getNote());
-                startActivity(intent);
-            }
+        listView.setOnItemClickListener((adapterView, view1, i, l) -> {
+            Intent intent = new Intent(getActivity(), ItemDetailActivity.class);
+            intent.putExtra("id", arrayOfActivities.get(i).getId());
+            intent.putExtra("category", arrayOfActivities.get(i).getCategory());
+            intent.putExtra("money", arrayOfActivities.get(i).getMoney());
+            intent.putExtra("date", arrayOfActivities.get(i).getIssueDate());
+            intent.putExtra("note", arrayOfActivities.get(i).getNote());
+            startActivity(intent);
         });
 
         // Set data of trip
@@ -81,13 +82,13 @@ public class DashboardFragment extends Fragment {
                 Statement st = connection.createStatement();
                 ResultSet rs = st.executeQuery(sqlScript);
 
-                ArrayList<String> data = new ArrayList<String>();
+                ArrayList<String> data = new ArrayList<>();
                 while (rs.next()){
                     String TripName = rs.getString("TripName") + " in " + rs.getString("Destination");
                     data.add(TripName);
                 }
 
-                ArrayAdapter<String> array = new ArrayAdapter<String>(getActivity().getBaseContext(), android.R.layout.simple_spinner_item, data);
+                ArrayAdapter<String> array = new ArrayAdapter<>(getActivity().getBaseContext(), android.R.layout.simple_spinner_item, data);
                 array.setDropDownViewResource(android.R.layout
                         .simple_spinner_dropdown_item);
                 spinner.setAdapter(array);
@@ -127,7 +128,7 @@ public class DashboardFragment extends Fragment {
 
         });
 
-        // Btn delete trip
+        // Btn delete activities
         Button btnDeleteActivities = view.findViewById(R.id.btnDeleteActivities);
         btnDeleteActivities.setOnClickListener(v->{
             try{
@@ -143,9 +144,13 @@ public class DashboardFragment extends Fragment {
                     Integer tripId = tripData.get(selectedItem);
                     String sqlScript2 = "DELETE FROM Activity Where TripId = " + tripId;
                     Statement st2 = connection.createStatement();
-                    st2.executeQuery(sqlScript2);
+                    st2.executeUpdate(sqlScript2);
 
-                    Toast.makeText(getActivity().getBaseContext(), "Delete activities in "+ rs.getString("TripName")+" successful !!!", Toast.LENGTH_SHORT).show();
+                    check.setVisibility(View.VISIBLE);
+                    ListView list = view.findViewById(R.id.listActivity);
+                    list.setVisibility(View.GONE);
+
+                    Toast.makeText(getActivity().getBaseContext(), "Delete activities successful !!!", Toast.LENGTH_SHORT).show();
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -186,6 +191,7 @@ public class DashboardFragment extends Fragment {
                         arrayOfActivities.add(new Activity(Integer.parseInt(rs2.getString("Id")),rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
                     }
                     listView.setAdapter(adapter);
+                    checkExistActivity(arrayOfActivities);
                 }
             } catch (ParseException | SQLException e) {
                 e.printStackTrace();
@@ -220,6 +226,7 @@ public class DashboardFragment extends Fragment {
                         arrayOfActivities.add(new Activity(Integer.parseInt(rs2.getString("Id")),rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
                     }
                     listView.setAdapter(adapter);
+                    checkExistActivity(arrayOfActivities);
                 }
             } catch (ParseException | SQLException e) {
                 e.printStackTrace();
@@ -231,7 +238,6 @@ public class DashboardFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selectedItem =  parent.getItemAtPosition(position).toString();
-                Toast.makeText(getActivity().getBaseContext(),"Finding activities in "+ selectedItem,Toast.LENGTH_LONG).show();
 
                 arrayOfActivities.clear();
                 try{
@@ -256,6 +262,7 @@ public class DashboardFragment extends Fragment {
                             tripDate.put(rs1.getInt("TripId"), rs1.getDate("TripDate"));
                         }
                         Date currentTripDate = tripDate.get(tripId);
+                        assert currentTripDate != null;
                         monthPickerTitle.setText(format.format(currentTripDate));
 
 
@@ -288,6 +295,16 @@ public class DashboardFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+    }
+
+    public void checkExistActivity(ArrayList arr){
+        TextView check = getView().findViewById(R.id.checkExistActivity);
+        if(arr.isEmpty())
+        {
+            check.setVisibility(View.VISIBLE);
+        } else {
+            check.setVisibility(View.GONE);
+        }
     }
 
     @SuppressLint("NewApi")

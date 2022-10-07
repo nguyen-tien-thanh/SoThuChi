@@ -91,6 +91,18 @@
                 android:text="Delete all activities" />
         </LinearLayout>
 
+
+        <TextView
+            android:id="@+id/checkExistActivity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:visibility="gone"
+            android:textSize="20dp"
+            android:layout_gravity="center"
+            android:textColor="@color/black"
+            android:text="There are no activities for the day of this trip !!" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -105,5 +117,6 @@
         </LinearLayout>
 
     </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

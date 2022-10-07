@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.home.HomeFragment">
+    tools:context=".ui.activity.ActivityFragment">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -42,11 +42,12 @@
                     android:id="@+id/spinnerTrip"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:ems="10"
-                    android:minHeight="48dp"
                     android:layout_marginStart="22dp"
                     android:background="@android:drawable/btn_dropdown"
-                    android:spinnerMode="dropdown"/>
+                    android:ems="10"
+                    android:minHeight="48dp"
+                    android:spinnerMode="dropdown"
+                    tools:ignore="SpeakableTextPresentCheck" />
             </LinearLayout>
 
             <LinearLayout

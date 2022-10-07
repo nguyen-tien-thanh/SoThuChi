@@ -1,4 +1,4 @@
-package com.example.cw_1.ui.home;
+package com.example.cw_1.ui.activity;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
@@ -10,14 +10,12 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.example.cw_1.R;
-import com.example.cw_1.databinding.FragmentHomeBinding;
+import com.example.cw_1.databinding.FragmentActivityBinding;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -28,14 +26,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
-public class HomeFragment extends Fragment {
+public class ActivityFragment extends Fragment {
 
-    private FragmentHomeBinding binding;
+    private FragmentActivityBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         LayoutInflater lf = getActivity().getLayoutInflater();
-        View view =  lf.inflate(R.layout.fragment_home, container, false);
+        View view =  lf.inflate(R.layout.fragment_activity, container, false);
 
         // Date first set
         Calendar cal = Calendar.getInstance();

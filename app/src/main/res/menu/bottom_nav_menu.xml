@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/navigation_home"
-        android:icon="@drawable/ic_home_black_24dp"
-        android:title="@string/title_home" />
+        android:id="@+id/navigation_activity"
+        android:icon="@drawable/ic_baseline_local_activity_24"
+        android:title="@string/title_activity" />
 
     <item
         android:id="@+id/navigation_trip"
@@ -15,6 +15,4 @@
         android:id="@+id/navigation_dashboard"
         android:icon="@drawable/ic_dashboard_black_24dp"
         android:title="@string/title_dashboard" />
-
-
 </menu>
