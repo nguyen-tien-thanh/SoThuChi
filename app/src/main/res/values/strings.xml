@@ -46,5 +46,7 @@
 
 
     <string name="title_activity">Activity</string>
+    <string name="search_result">Search result</string>
+    <string name="go_back">Go back</string>
 
 </resources>
