@@ -6,9 +6,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.firebase.firestore.FirebaseFirestore;
 
 
 public class SearchResultActivity extends AppCompatActivity {
+
+    FirebaseFirestore firebase = FirebaseFirestore.getInstance();
 
     TextView tripName;
     TextView destination;
@@ -16,6 +21,7 @@ public class SearchResultActivity extends AppCompatActivity {
     TextView risk;
     TextView desc;
     Button btnBack;
+    Button btnDelete;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,12 +40,21 @@ public class SearchResultActivity extends AppCompatActivity {
         tripName.setText(intent.getStringExtra("tripName"));
         destination.setText(intent.getStringExtra("destination"));
         date.setText(intent.getSerializableExtra("tripDate").toString());
-        Boolean riskCheck = intent.getBooleanExtra("riskAssessment", false);
+        boolean riskCheck = intent.getBooleanExtra("riskAssessment", false);
 
         risk.setText(riskCheck ? "True" : "False");
         desc.setText(intent.getStringExtra("description") == null ? intent.getStringExtra("description") : "No description" );
 
         btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v-> finish());
+
+        btnDelete = findViewById(R.id.btnDeleteActivity);
+        btnDelete.setOnClickListener(v-> {
+            String tripId = intent.getStringExtra("tripId");
+            firebase.collection("Trip").document(tripId)
+                .delete()
+                .addOnSuccessListener(unused -> Toast.makeText(SearchResultActivity.this, "Delete trip " + intent.getStringExtra("tripname") +" successful", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(SearchResultActivity.this, "Delete trip failure !", Toast.LENGTH_SHORT).show());
+            });
     }
 }

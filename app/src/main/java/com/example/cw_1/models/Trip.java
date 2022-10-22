@@ -5,14 +5,14 @@ import java.util.Date;
 import java.util.List;
 
 public class Trip {
-    private Integer tripId;
+    private String tripId;
     private String tripName;
     private String destination;
     private Date tripDate;
     private Boolean riskAssessment;
     private String description;
 
-    public Trip(Integer tripId, String tripName, String destination, Date tripDate, Boolean riskAssessment, String description) {
+    public Trip(String tripId, String tripName, String destination, Date tripDate, Boolean riskAssessment, String description) {
         this.tripId = tripId;
         this.tripName = tripName;
         this.destination = destination;
@@ -21,7 +21,7 @@ public class Trip {
         this.description = description;
     }
 
-    public Integer getTripId(){return tripId;}
+    public String getTripId(){return tripId;}
 
     public String getTripName(){return tripName;}
 

@@ -1,5 +1,6 @@
 package com.example.cw_1;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
@@ -12,6 +13,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.cw_1.models.Activity;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -23,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 public class ItemDetailActivity extends AppCompatActivity {
     TextView category;
@@ -30,6 +35,9 @@ public class ItemDetailActivity extends AppCompatActivity {
     TextView note;
     TextView date;
     TextView title;
+
+    FirebaseFirestore firebase = FirebaseFirestore.getInstance();
+
 
     @SuppressLint("SimpleDateFormat")
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
@@ -49,11 +57,14 @@ public class ItemDetailActivity extends AppCompatActivity {
         title = findViewById(R.id.titleItemDetail);
 
         Intent intent = getIntent();
-        String activityId = String.valueOf(intent.getIntExtra("id", 0));
+        String activityId = intent.getStringExtra("id");
+                //String.valueOf(intent.getIntExtra("id", 0));
 
         //Btn prev, next date clicked
         Button btnPrev = findViewById(R.id.btnPrevUpdate);
         Button btnNext = findViewById(R.id.btnNextUpdate);
+
+        Calendar cal = Calendar.getInstance();
         btnPrev.setOnClickListener(v -> {
             Date dt = null;
             try {
@@ -61,7 +72,6 @@ public class ItemDetailActivity extends AppCompatActivity {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            Calendar cal = Calendar.getInstance();
             assert dt != null;
             cal.setTime(dt);
             cal.add(Calendar.DAY_OF_MONTH, -1);
@@ -74,45 +84,54 @@ public class ItemDetailActivity extends AppCompatActivity {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            Calendar cal = Calendar.getInstance();
             assert dt != null;
             cal.setTime(dt);
             cal.add(Calendar.DAY_OF_MONTH, 1);
             date.setText(format.format(cal.getTime()));
         });
 
+        title.setText("Update " + intent.getStringExtra("category"));
         category.setText(intent.getStringExtra("category"));
         money.setText(String.valueOf(intent.getIntExtra("money", 0)));
         note.setText(intent.getStringExtra("note"));
-        date.setText(intent.getSerializableExtra("date").toString());
-        title.setText("Update " + intent.getStringExtra("category"));
+        date.setText(format.format(intent.getSerializableExtra("date")));
+
 
         // Update activity
         Button btnUpdate = findViewById(R.id.btnUpdate);
         btnUpdate.setOnClickListener(v -> {
-            Connection connection = connectionClass();
-            try{
-                if(connection != null){
-                    if(category.getText().toString().length() == 0){
-                        Toast.makeText(this, "The category must not be null !!!", Toast.LENGTH_SHORT).show();
-                    } else if (money.getText().toString().length() == 0) {
-                        Toast.makeText(this, "The money must not be null !!!", Toast.LENGTH_SHORT).show();
-                    } else {
-                        String sqlScript = "UPDATE Activity SET Category = '" + category.getText().toString() +
-                                "',Amount = " + money.getText().toString() +
-                                ",IssueDate = '" + date.getText().toString() +
-                                "',Note = '" + note.getText().toString() +
-                                "' Where Id =" + activityId;
-                        Statement st = connection.createStatement();
-                        st.executeUpdate(sqlScript);
-                        Toast.makeText(this, "Update successful !!!", Toast.LENGTH_SHORT).show();
-                        finish();
-                    }
+            if(category.getText().toString().length() == 0){
+                Toast.makeText(this, "The category must not be null !!!", Toast.LENGTH_SHORT).show();
+            } else if (money.getText().toString().length() == 0) {
+                Toast.makeText(this, "The money must not be null !!!", Toast.LENGTH_SHORT).show();
+            } else {
+                Date dt = null;
+                try {
+                    dt = format.parse(date.getText().toString());
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
-            }
-            catch (Exception exception) {
-                Log.e("Error", exception.getMessage());
-                Toast.makeText(this, "Update failed !!!", Toast.LENGTH_SHORT).show();
+                assert dt != null;
+                cal.setTime(dt);
+
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("category", category.getText().toString());
+                updates.put("money", money.getText().toString());
+                updates.put("note", note.getText().toString());
+                updates.put("issueDate", cal.getTime());
+
+                firebase.collection("Trip")
+                        .document(intent.getStringExtra("tripId"))
+                        .collection("Activity")
+                        .document(intent.getStringExtra("id"))
+                        .set(updates)
+                        .addOnSuccessListener(unused -> {
+                            Toast.makeText(this, "Update successful !!!", Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(this, "Update failure !!!", Toast.LENGTH_SHORT).show();
+                        });
+                //finish();
             }
         });
 

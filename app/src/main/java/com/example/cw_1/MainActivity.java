@@ -20,8 +20,14 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -29,6 +35,11 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.cw_1.databinding.ActivityMainBinding;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 
 import java.sql.Connection;
@@ -42,12 +53,19 @@ import java.util.Calendar;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
 
+    FirebaseFirestore firebase = FirebaseFirestore.getInstance();
+    final List<String> listTripId = new ArrayList<>();
+
     private ActivityMainBinding binding;
     private DatePickerDialog datePickerDialog;
+
+    private Date activityDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +73,9 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        Calendar cal = Calendar.getInstance();
+        activityDate = cal.getTime();
 
         // DATE PICKER
         initDatePicker();
@@ -75,122 +96,62 @@ public class MainActivity extends AppCompatActivity {
 
     // Create activity
     public void saveActivity (View view){
-        Button dateButton = findViewById(R.id.editDate);
-        Spinner spinner = (Spinner)findViewById(R.id.spinnerTrip);
-        TextView note = (TextView)findViewById(R.id.editNote);
-        TextView money = (TextView)findViewById(R.id.editMoney);
-        TextView category = (TextView)findViewById(R.id.editCategory);
+        Spinner spinner = findViewById(R.id.spinnerTrip);
+        TextView note = findViewById(R.id.editNote);
+        TextView money = findViewById(R.id.editMoney);
+        TextView category = findViewById(R.id.editCategory);
+        String tripId = listTripId.get(spinner.getSelectedItemPosition());
 
-        Connection connection = connectionClass();
-        String compareValue;
         if(spinner.getSelectedItem() == null ){
             Toast.makeText(this, "You need to create Trip first", Toast.LENGTH_SHORT).show();
-        } else if(money.getText().toString() == null || money.getText().toString().length() == 0 ){
+        } else if(money.getText().toString().length() == 0 ){
             Toast.makeText(this, "Money can not be null", Toast.LENGTH_SHORT).show();
-        } else if (category.getText().toString().length() == 0 || category.getText().toString() == null) {
+        } else if (category.getText().toString().length() == 0) {
             Toast.makeText(this, "Category can not be null", Toast.LENGTH_SHORT).show();
         } else {
-            try {
-                if (connection != null) {
-                    compareValue = spinner.getSelectedItem().toString();
+            Map<String, Object> activity = new HashMap<>();
+            activity.put("category", category.getText().toString());
+            activity.put("money", money.getText().toString());
+            activity.put("issueDate", activityDate);
+            //activity.put("tripId", tripId);
+            activity.put("note", note.getText().toString());
 
-                    String sqlScript = "Select * from Trip";
-                    Statement st = connection.createStatement();
-                    ResultSet rs = st.executeQuery(sqlScript);
-
-                    HashMap<String, Integer> tripData = new HashMap<>();
-                    while (rs.next()) {
-                        tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
-                    }
-                    Integer tripId = tripData.get(compareValue);
-
-
-                    String sqlScript2 = "Insert into Activity (IssueDate, Note, Amount, Category, TripId) values ('"
-                            + dateButton.getText().toString() + "','"
-                            + note.getText().toString() + "','"
-                            + money.getText().toString() + "','"
-                            + category.getText().toString() + "','"
-                            + tripId.toString() + "')";
-                    Statement st2 = connection.createStatement();
-                    st2.executeUpdate(sqlScript2);
-
-                    Toast.makeText(this, "Created successful!!!", Toast.LENGTH_SHORT).show();
-                }
-            } catch (Exception exception) {
-                Log.e("Error", exception.getMessage());
-                Toast.makeText(this, "Save failed !!!", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    // Create Trip
-    public void saveTrip(View view){
-        // Calendar view
-        Intent incomingIntent = getIntent();
-        String tripDate = incomingIntent.getStringExtra("tripDate");
-        if(tripDate == null) {
-            Calendar cal = Calendar.getInstance();
-            Date dt = cal.getTime();
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-            tripDate = format.format(dt);
-        }
-
-        Connection connection = connectionClass();
-        TextView tripName = findViewById(R.id.editTripName);
-        TextView destination = findViewById(R.id.editDestination);
-        TextView description = findViewById(R.id.editDescription);
-        Boolean switchValue = ((Switch) findViewById(R.id.switchRiskAssessment)).isChecked();
-
-        if(tripName.getText().toString() == null || tripName.getText().toString().length() == 0 ){
-            Toast.makeText(this, "Trip name can not be null", Toast.LENGTH_SHORT).show();
-        } else if (destination.getText().toString().length() == 0 || destination.getText().toString() == null) {
-            Toast.makeText(this, "Destination can not be null", Toast.LENGTH_SHORT).show();
-        }
-        else {
-            try{
-                if(connection != null){
-                    String sqlScript = "Insert into Trip (TripName, Destination, TripDate, RiskAssessment, Description ) values ('"
-                            +tripName.getText().toString()+"','"
-                            +destination.getText().toString()+"','"
-                            +tripDate+"','"
-                            +switchValue+"','"
-                            +description.getText().toString()+"')";
-                    Statement st = connection.createStatement();
-                    st.executeUpdate(sqlScript);
-                    Toast.makeText(this, "Create successful !!", Toast.LENGTH_SHORT).show();
-                }
-            }
-            catch (Exception exception) {
-                Log.e("Error", exception.getMessage());
-            }
+            firebase.collection("Trip").document(tripId).collection("Activity")
+                    .add(activity)
+                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                        @Override
+                        public void onSuccess(DocumentReference documentReference) {
+                            Toast.makeText(MainActivity.this,"Add activity successful!", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(MainActivity.this,"Add activity failure!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
     }
 
     //Fill spinner
     public void FillSpinner(){
-        Spinner spinner = (Spinner)findViewById(R.id.spinnerTrip);
-        Connection connection = connectionClass();
-        try{
-            if(connection != null){
-                String sqlScript = "Select * from trip";
-                Statement st = connection.createStatement();
-                ResultSet rs = st.executeQuery(sqlScript);
-
-                ArrayList<String> data = new ArrayList<String>();
-                while (rs.next()){
-                    String TripName = rs.getString("TripName") + " in " + rs.getString("Destination");
-                    data.add(TripName);
+        Spinner spinner = findViewById(R.id.spinnerTrip);
+        FirebaseFirestore rootRef = FirebaseFirestore.getInstance();
+        CollectionReference tripsRef = rootRef.collection("Trip");
+        List<String> trips = new ArrayList<>();
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, trips);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        tripsRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    String trip = document.getString("tripName") + " in " + document.getString("destination");
+                    trips.add(trip);
+                    listTripId.add(document.getId());
                 }
-
-                ArrayAdapter<String> array = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, data);
-                array.setDropDownViewResource(android.R.layout
-                                .simple_spinner_dropdown_item);
-                spinner.setAdapter(array);
+                adapter.notifyDataSetChanged();
             }
-        }
-        catch (Exception exception){
-            Log.e("Error", exception.getMessage());
-        }
+        });
     }
 
 
@@ -240,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void removeBackgroundCategory (int id){
-        LinearLayout layout = (LinearLayout)findViewById(id);
+        LinearLayout layout = findViewById(id);
         int count = layout.getChildCount();
         View categoryItems = null;
         for(int i=0; i<count; i++) {
@@ -251,16 +212,19 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void initDatePicker() {
-        Button dateButton = (Button)findViewById(R.id.editDate);
-        DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                month = month + 1;
-                String date = getMonthFormat(month) + " " + day + " " + year;
-                dateButton.setText(date);
-            }
-        };
+        Button dateButton = findViewById(R.id.editDate);
         Calendar cal = Calendar.getInstance();
+        Calendar cal1 = Calendar.getInstance();
+
+
+        DatePickerDialog.OnDateSetListener dateSetListener = (datePicker, year, month, day) -> {
+            month = month + 1;
+            String date = getMonthFormat(month) + " " + day + " " + year;
+            dateButton.setText(date);
+
+            cal1.set(year,month,day);
+            activityDate = cal1.getTime();
+        };
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH);
         int day = cal.get(Calendar.DAY_OF_MONTH);
@@ -268,6 +232,7 @@ public class MainActivity extends AppCompatActivity {
         int style = AlertDialog.THEME_HOLO_LIGHT;
         datePickerDialog = new DatePickerDialog(this, style, dateSetListener, year, month, day);
         datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+
     }
 
     private String getMonthFormat(int month) {
@@ -289,22 +254,5 @@ public class MainActivity extends AppCompatActivity {
     public void openDatePicker(View view){
         datePickerDialog.show();
     }
-
-    @SuppressLint("NewApi")
-    public Connection connectionClass() {
-        Connection con = null;
-        String ip = "192.168.0.106", port = "1433", username = "sa", password = "123456", database = "CRUDAndroidDB";
-        StrictMode.ThreadPolicy tp = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(tp);
-        try {
-            Class.forName("net.sourceforge.jtds.jdbc.Driver");
-            String connectionUrl = "jdbc:jtds:sqlserver://" + ip + ":" + port + ";databasename=" + database + ";user=" + username + ";password=" + password + ";";
-            con = DriverManager.getConnection(connectionUrl);
-        } catch (Exception exception) {
-            Log.e("Error", exception.getMessage());
-        }
-        return con;
-    }
-
 
 }

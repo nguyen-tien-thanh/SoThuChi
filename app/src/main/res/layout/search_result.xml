@@ -187,7 +187,19 @@ tools:context=".SearchResultActivity">
             android:textColorHint="#757575"
             android:textSize="16sp" />
     </RelativeLayout>
-
+<!--    <LinearLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal">-->
+<!--        <Button-->
+<!--            android:id="@+id/btnSeeAllActivities"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_margin="10dp"-->
+<!--            android:layout_weight="1"-->
+<!--            android:text="@string/btn_see_all_activities"-->
+<!--            />-->
+<!--    </LinearLayout>-->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -200,6 +212,14 @@ tools:context=".SearchResultActivity">
             android:layout_margin="10dp"
             android:layout_weight="1"
             android:text="@string/go_back"
+            />
+        <Button
+            android:id="@+id/btnDeleteActivity"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:text="@string/btn_delete"
             />
     </LinearLayout>
 

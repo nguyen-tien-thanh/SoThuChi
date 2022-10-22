@@ -3,8 +3,6 @@ package com.example.cw_1.ui.dashboard;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.StrictMode;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,20 +21,26 @@ import androidx.navigation.Navigation;
 import com.example.cw_1.ItemDetailActivity;
 import com.example.cw_1.R;
 import com.example.cw_1.models.Activity;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DashboardFragment extends Fragment {
+
+    final List<String> listTripId = new ArrayList<>();
+    FirebaseFirestore firebase = FirebaseFirestore.getInstance();
 
     @SuppressLint("SimpleDateFormat")
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
@@ -46,8 +50,6 @@ public class DashboardFragment extends Fragment {
 
         LayoutInflater lf = getActivity().getLayoutInflater();
         View view =  lf.inflate(R.layout.fragment_dashboard, container, false);
-
-        Connection connection = connectionClass();
 
         TextView checkExistActivity = view.findViewById(R.id.checkExistActivity);
         TextView monthPickerTitle = view.findViewById(R.id.monthPickerTitle);
@@ -69,6 +71,7 @@ public class DashboardFragment extends Fragment {
         // Item in listview clicked
         listView.setOnItemClickListener((adapterView, view1, i, l) -> {
             Intent intent = new Intent(getActivity(), ItemDetailActivity.class);
+            intent.putExtra("tripId", listTripId.get(i));
             intent.putExtra("id", arrayOfActivities.get(i).getId());
             intent.putExtra("category", arrayOfActivities.get(i).getCategory());
             intent.putExtra("money", arrayOfActivities.get(i).getMoney());
@@ -81,63 +84,37 @@ public class DashboardFragment extends Fragment {
         // Btn delete trip
         Button btnDeleteTrip = view.findViewById(R.id.btnDeleteTrip);
         btnDeleteTrip.setOnClickListener(v->{
-            try{
-                if(connection != null){
+            String tripId = listTripId.get(spinner.getSelectedItemPosition());
 
-                    String selectedItem = spinner.getSelectedItem().toString();
-                    String sqlScript = "Select * from Trip";
-                    Statement st = connection.createStatement();
-                    ResultSet rs = st.executeQuery(sqlScript);
-
-                    HashMap<String, Integer> tripData = new HashMap<>();
-                    while(rs.next()){
-                        tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
-                    }
-                    Integer tripId = tripData.get(selectedItem);
-
-                    String sqlScript2 = "DELETE FROM Trip Where TripId = " + tripId;
-                    Statement st2 = connection.createStatement();
-                    st2.executeUpdate(sqlScript2);
-
-                    Toast.makeText(getActivity().getBaseContext(), "Delete trip successful !!!", Toast.LENGTH_SHORT).show();
-
-                    Navigation.findNavController(view).navigate(R.id.navigation_dashboard);
-
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
+            firebase.collection("Trip").document(tripId)
+                .delete()
+                .addOnSuccessListener(unused -> Toast.makeText(getActivity(), "Delete trip success", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(getActivity(), "Delete failure !", Toast.LENGTH_SHORT).show());
+            //checkExistActivity(arrayOfActivities);
+            Navigation.findNavController(view).navigate(R.id.navigation_dashboard);
         });
 
         // Btn delete activities
         Button btnDeleteActivities = view.findViewById(R.id.btnDeleteActivities);
         btnDeleteActivities.setOnClickListener(v->{
-            try{
-                if(connection != null){
-                    String selectedItem = spinner.getSelectedItem().toString();
-                    String sqlScript = "Select * from Trip";
-                    Statement st = connection.createStatement();
-                    ResultSet rs = st.executeQuery(sqlScript);
-                    HashMap<String, Integer> tripData = new HashMap<>();
-                    while(rs.next()){
-                        tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
+            if(arrayOfActivities.isEmpty()){
+                Toast.makeText(getActivity(), "There is no activity to delete !!!", Toast.LENGTH_SHORT).show();
+            } else {
+                String tripId = listTripId.get(spinner.getSelectedItemPosition());
+                DocumentReference docRef = firebase.collection("Trip").document(tripId);
+                docRef.collection("Activity").get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            firebase.collection("Trip").document(tripId).collection("Activity").document(document.getId())
+                                    .delete()
+                                    .addOnSuccessListener(unused -> Toast.makeText(getActivity(), "Delete all activities success", Toast.LENGTH_SHORT).show())
+                                    .addOnFailureListener(e -> Toast.makeText(getActivity(), "Delete failure !", Toast.LENGTH_SHORT).show());
+                        }
                     }
-                    Integer tripId = tripData.get(selectedItem);
-                    String sqlScript2 = "DELETE FROM Activity Where TripId = " + tripId;
-                    Statement st2 = connection.createStatement();
-                    st2.executeUpdate(sqlScript2);
-
-                    checkExistActivity.setVisibility(View.VISIBLE);
-                    //ListView list = view.findViewById(R.id.listActivity);
-                    listView.setVisibility(View.GONE);
-
-                    Toast.makeText(getActivity().getBaseContext(), "Delete activities successful !!!", Toast.LENGTH_SHORT).show();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+                });
+                arrayOfActivities.clear();
+                checkExistActivity(arrayOfActivities);
             }
-
         });
 
 
@@ -146,158 +123,179 @@ public class DashboardFragment extends Fragment {
         Button btnNext = view.findViewById(R.id.btnNextDay);
         btnPrev.setOnClickListener(v -> {
             arrayOfActivities.clear();
+
+            // Decrease date text
+            Date dt = null;
             try {
-                if(connection != null){
-                    Date dt = format.parse(monthPickerTitle.getText().toString());
-                    Calendar cal = Calendar.getInstance();
+                dt = format.parse(monthPickerTitle.getText().toString());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            Calendar cal = Calendar.getInstance();
                     assert dt != null;
                     cal.setTime(dt);
                     cal.add(Calendar.DAY_OF_MONTH, -1);
                     monthPickerTitle.setText(format.format(cal.getTime()));
 
-                    String selectedItem = spinner.getSelectedItem().toString();
-                    String sqlScript = "Select * from Trip";
-                    Statement st = connection.createStatement();
-                    ResultSet rs = st.executeQuery(sqlScript);
+            String tripId = listTripId.get(spinner.getSelectedItemPosition());
 
-                    HashMap<String, Integer> tripData = new HashMap<>();
-                    while(rs.next()){
-                        tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
-                    }
-                    Integer tripId = tripData.get(selectedItem);
+            DocumentReference docRef = firebase.collection("Trip").document(tripId);
+            docRef.collection("Activity").get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    arrayOfActivities.clear();
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        int money = Integer.parseInt(document.getString("money"));
 
-                    String sqlScript2 = "SELECT * FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
-                    Statement st2 = connection.createStatement();
-                    ResultSet rs2 = st2.executeQuery(sqlScript2);
-                    while(rs2.next()){
-                        arrayOfActivities.add(new Activity(Integer.parseInt(rs2.getString("Id")),rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
+                        Calendar cal1 = Calendar.getInstance();
+                        cal1.setTime(document.getDate("issueDate"));
+                        Boolean isSameDay = cal1.get(Calendar.DAY_OF_YEAR) == cal.get(Calendar.DAY_OF_YEAR) &&
+                                cal1.get(Calendar.YEAR) == cal.get(Calendar.YEAR);
+
+                        if(isSameDay){
+                            arrayOfActivities.add(new Activity(document.getId(),document.getString("category"), money, document.getDate("issueDate"),document.getString("note")));
+                            listTripId.add(document.getId());
+                        }
                     }
-                    listView.setAdapter(adapter);
-                    checkExistActivity(arrayOfActivities);
+
                 }
-            } catch (ParseException | SQLException e) {
-                e.printStackTrace();
-            }
+                listView.setAdapter(adapter);
+                checkExistActivity(arrayOfActivities);
+            });
         });
         btnNext.setOnClickListener(v -> {
             arrayOfActivities.clear();
+
+            // Decrease date text
+            Date dt = null;
             try {
-                if(connection != null){
-                    Date dt = format.parse(monthPickerTitle.getText().toString());
-                    Calendar cal = Calendar.getInstance();
-                    assert dt != null;
-                    cal.setTime(dt);
-                    cal.add(Calendar.DAY_OF_MONTH, 1);
-                    monthPickerTitle.setText(format.format(cal.getTime()));
-
-                    String selectedItem = spinner.getSelectedItem().toString();
-                    String sqlScript = "Select * from Trip";
-                    Statement st = connection.createStatement();
-                    ResultSet rs = st.executeQuery(sqlScript);
-
-                    HashMap<String, Integer> tripData = new HashMap<>();
-                    while(rs.next()){
-                        tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
-                    }
-                    Integer tripId = tripData.get(selectedItem);
-
-                    String sqlScript2 = "SELECT * FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
-                    Statement st2 = connection.createStatement();
-                    ResultSet rs2 = st2.executeQuery(sqlScript2);
-                    while(rs2.next()){
-                        arrayOfActivities.add(new Activity(Integer.parseInt(rs2.getString("Id")),rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
-                    }
-                    listView.setAdapter(adapter);
-                    checkExistActivity(arrayOfActivities);
-                }
-            } catch (ParseException | SQLException e) {
+                dt = format.parse(monthPickerTitle.getText().toString());
+            } catch (ParseException e) {
                 e.printStackTrace();
             }
+            Calendar cal = Calendar.getInstance();
+            assert dt != null;
+            cal.setTime(dt);
+            cal.add(Calendar.DAY_OF_MONTH, 1);
+            monthPickerTitle.setText(format.format(cal.getTime()));
+
+            String tripId = listTripId.get(spinner.getSelectedItemPosition());
+
+            DocumentReference docRef = firebase.collection("Trip").document(tripId);
+            docRef.collection("Activity").get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    arrayOfActivities.clear();
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        int money = Integer.parseInt(document.getString("money"));
+
+                        Calendar cal1 = Calendar.getInstance();
+                        cal1.setTime(document.getDate("issueDate"));
+                        Boolean isSameDay = cal1.get(Calendar.DAY_OF_YEAR) == cal.get(Calendar.DAY_OF_YEAR) &&
+                                cal1.get(Calendar.YEAR) == cal.get(Calendar.YEAR);
+
+                        if (isSameDay) {
+                            arrayOfActivities.add(new Activity(document.getId(), document.getString("category"), money, document.getDate("issueDate"), document.getString("note")));
+                            listTripId.add(document.getId());
+                        }
+                    }
+
+                }
+                listView.setAdapter(adapter);
+                checkExistActivity(arrayOfActivities);
+            });
         });
 
         // Set data of trip
-        try{
-            if(connection != null){
-                String sqlScript = "Select * from trip";
-                Statement st = connection.createStatement();
-                ResultSet rs = st.executeQuery(sqlScript);
+        FirebaseFirestore rootRef = FirebaseFirestore.getInstance();
+        CollectionReference tripsRef = rootRef.collection("Trip");
+        List<String> trips = new ArrayList<>();
+        ArrayAdapter<String> tripAdapter = new ArrayAdapter<>(getActivity().getBaseContext(), android.R.layout.simple_spinner_item, trips);
+        tripAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(tripAdapter);
+        tripsRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    String trip = document.getString("tripName") + " in " + document.getString("destination");
 
-                ArrayList<String> data = new ArrayList<>();
-                while (rs.next()){
-                    String TripName = rs.getString("TripName") + " in " + rs.getString("Destination");
-                    data.add(TripName);
+                    trips.add(trip);
+                    listTripId.add(document.getId());
                 }
-
-                ArrayAdapter<String> array = new ArrayAdapter<>(getActivity().getBaseContext(), android.R.layout.simple_spinner_item, data);
-                array.setDropDownViewResource(android.R.layout
-                        .simple_spinner_dropdown_item);
-                spinner.setAdapter(array);
-
-                int count = spinner.getAdapter() != null ? spinner.getAdapter().getCount() : 0;
-                TextView checkExistList = view.findViewById(R.id.checkExistList);
-                if (count == 0){
-                    btnDeleteActivities.setEnabled(false);
-                    btnDeleteTrip.setEnabled(false);
-                    btnNext.setEnabled(false);
-                    btnPrev.setEnabled(false);
-                    checkExistList.setVisibility(View.VISIBLE);
-                    checkExistActivity.setVisibility(View.GONE);
-                }
+                tripAdapter.notifyDataSetChanged();
             }
-        }
-        catch (Exception exception){
-            Log.e("Error", exception.getMessage());
-        }
-
+        });
 
         // Event on choosing trip from spinner
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedItem =  parent.getItemAtPosition(position).toString();
+                String tripId = listTripId.get(spinner.getSelectedItemPosition());
+                DocumentReference tripRef = firebase.collection("Trip").document(tripId);
+                tripRef.get().addOnCompleteListener( task -> {
+                    if (task.isSuccessful()) {
+                        arrayOfActivities.clear();
+                        DocumentSnapshot document = task.getResult();
 
-                arrayOfActivities.clear();
-                try{
-                    if(connection != null){
-                        String sqlScript = "Select * from Trip";
-                        Statement st = connection.createStatement();
-                        ResultSet rs = st.executeQuery(sqlScript);
+                        Calendar cal = Calendar.getInstance();
+                        cal.setTime(new Date());
+                        Calendar calTrip = Calendar.getInstance();
+                        calTrip.setTime(document.getDate("tripDate"));
+                        Boolean isTodayTrip = cal.get(Calendar.DAY_OF_YEAR) == calTrip.get(Calendar.DAY_OF_YEAR) &&
+                                cal.get(Calendar.YEAR) == calTrip.get(Calendar.YEAR);
 
-                        HashMap<String, Integer> tripData = new HashMap<>();
-                        while(rs.next()){
-                            tripData.put(rs.getString("TripName") + " in " + rs.getString("Destination"), rs.getInt("TripId"));
+                        if(isTodayTrip){
+                            DocumentReference activityRef = firebase.collection("Trip").document(tripId);
+                            activityRef.collection("Activity").get().addOnCompleteListener(tasks -> {
+                                if (task.isSuccessful()) {
+                                    arrayOfActivities.clear();
+                                    for (QueryDocumentSnapshot documents : tasks.getResult()) {
+                                        int money = Integer.parseInt(documents.getString("money"));
+
+                                        Calendar cal1 = Calendar.getInstance();
+                                        Calendar cal2 = Calendar.getInstance();
+                                        cal1.setTime(documents.getDate("issueDate"));
+                                        cal2.setTime(new Date());
+                                        Boolean isToday = cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR) &&
+                                                cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR);
+
+                                        if(isToday){
+                                            arrayOfActivities.add(new Activity(documents.getId(),documents.getString("category"), money, documents.getDate("issueDate"),documents.getString("note")));
+                                            listTripId.add(document.getId());
+                                        }
+                                    }
+                                    tripAdapter.notifyDataSetChanged();
+                                }
+                                listView.setAdapter(adapter);
+                                checkExistActivity(arrayOfActivities);
+                            });
                         }
-                        Integer tripId = tripData.get(selectedItem);
+                        else {
+                            monthPickerTitle.setText(format.format(calTrip.getTime()));
+                            arrayOfActivities.clear();
 
+                            DocumentReference docRef = firebase.collection("Trip").document(tripId);
+                            docRef.collection("Activity").get().addOnCompleteListener(tasks -> {
+                                if (tasks.isSuccessful()) {
+                                    arrayOfActivities.clear();
+                                    for (QueryDocumentSnapshot documents : tasks.getResult()) {
+                                        int money = Integer.parseInt(documents.getString("money"));
 
+                                        Calendar cal2 = Calendar.getInstance();
+                                        cal2.setTime(documents.getDate("issueDate"));
+                                        Boolean isToday = cal2.get(Calendar.DAY_OF_YEAR) == calTrip.get(Calendar.DAY_OF_YEAR) &&
+                                                cal2.get(Calendar.YEAR) == calTrip.get(Calendar.YEAR);
 
-                        String sqlScript1 = "select TripDate, TripId from Trip where TripId =" + tripId;
-                        Statement st1 = connection.createStatement();
-                        ResultSet rs1 = st1.executeQuery(sqlScript1);
-                        HashMap<Integer, Date> tripDate = new HashMap<>();
-                        while (rs1.next()){
-                            tripDate.put(rs1.getInt("TripId"), rs1.getDate("TripDate"));
-                        }
-                        Date currentTripDate = tripDate.get(tripId);
-                        assert currentTripDate != null;
-                        monthPickerTitle.setText(format.format(currentTripDate));
+                                        if(isToday){
+                                            arrayOfActivities.add(new Activity(documents.getId(),documents.getString("category"), money, documents.getDate("issueDate"),documents.getString("note")));
+                                            listTripId.add(document.getId());
+                                        }
+                                    }
 
-
-
-                        String sqlScript2 = "SELECT * FROM Activity Where Activity.TripId = "+ tripId +"and Activity.IssueDate='" + monthPickerTitle.getText().toString()+"'";
-                        Statement st2 = connection.createStatement();
-                        ResultSet rs2 = st2.executeQuery(sqlScript2);
-                        while(rs2.next()){
-                            arrayOfActivities.add(new Activity(Integer.parseInt(rs2.getString("Id")),rs2.getString("Category"),Integer.parseInt(rs2.getString("Amount")), rs2.getDate("IssueDate") ,rs2.getString("Note")));
-                        }
-
-
-                        listView.setAdapter(adapter);
+                                }
+                                listView.setAdapter(adapter);
+                                checkExistActivity(arrayOfActivities);
+                            });
+                        };
                     }
-                }
-                catch (Exception exception){
-                    Log.e("Error", exception.getMessage());
-                }
+                });
             }
 
             @Override
@@ -322,21 +320,5 @@ public class DashboardFragment extends Fragment {
         } else {
             check.setVisibility(View.GONE);
         }
-    }
-
-    @SuppressLint("NewApi")
-    public Connection connectionClass() {
-        Connection con = null;
-        String ip = "192.168.0.106", port = "1433", username = "sa", password = "123456", database = "CRUDAndroidDB";
-        StrictMode.ThreadPolicy tp = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(tp);
-        try {
-            Class.forName("net.sourceforge.jtds.jdbc.Driver");
-            String connectionUrl = "jdbc:jtds:sqlserver://" + ip + ":" + port + ";databasename=" + database + ";user=" + username + ";password=" + password + ";";
-            con = DriverManager.getConnection(connectionUrl);
-        } catch (Exception exception) {
-            Log.e("Error", exception.getMessage());
-        }
-        return con;
     }
 }

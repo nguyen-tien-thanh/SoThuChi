@@ -1,6 +1,8 @@
 package com.example.cw_1.ui.activity;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
@@ -10,12 +12,19 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.example.cw_1.R;
 import com.example.cw_1.databinding.FragmentActivityBinding;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -25,46 +34,74 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class ActivityFragment extends Fragment {
 
     private FragmentActivityBinding binding;
+    final List<String> listTripId = new ArrayList<>();
+    private DatePickerDialog datePickerDialog;
+    private Date activityDate;
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         LayoutInflater lf = getActivity().getLayoutInflater();
         View view =  lf.inflate(R.layout.fragment_activity, container, false);
 
+
         // Date first set
         Calendar cal = Calendar.getInstance();
         Date dt = cal.getTime();
         SimpleDateFormat format = new SimpleDateFormat("MMM dd yyyy");
-        Button editTripDate = (Button)view.findViewById(R.id.editDate);
-        editTripDate.setText(format.format(dt));
+        Button editDate = (Button)view.findViewById(R.id.editDate);
+        editDate.setText(format.format(dt));
 
+        // Set spinner data
         Spinner spinner = (Spinner)view.findViewById(R.id.spinnerTrip);
-        Connection connection = connectionClass();
-        try{
-            if(connection != null){
-                String sqlScript = "Select * from trip";
-                Statement st = connection.createStatement();
-                ResultSet rs = st.executeQuery(sqlScript);
-
-                ArrayList<String> data = new ArrayList<String>();
-                while (rs.next()){
-                    String TripName = rs.getString("TripName") + " in " + rs.getString("Destination");
-                    data.add(TripName);
+        FirebaseFirestore rootRef = FirebaseFirestore.getInstance();
+        CollectionReference tripsRef = rootRef.collection("Trip");
+        List<String> trips = new ArrayList<>();
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, trips);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        tripsRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    String trip = document.getString("tripName") + " in " + document.getString("destination");
+                    trips.add(trip);
+                    listTripId.add(document.getId());
                 }
-
-                ArrayAdapter<String> array = new ArrayAdapter<String>(getActivity().getBaseContext(), android.R.layout.simple_spinner_item, data);
-                array.setDropDownViewResource(android.R.layout
-                        .simple_spinner_dropdown_item);
-                spinner.setAdapter(array);
+                adapter.notifyDataSetChanged();
             }
-        }
-        catch (Exception exception){
-            Log.e("Error", exception.getMessage());
-        }
+        });
+
+        // Choose date
+        editDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Calendar cal = Calendar.getInstance();
+                Calendar cal1 = Calendar.getInstance();
+
+
+                DatePickerDialog.OnDateSetListener dateSetListener = (datePicker, year, month, day) -> {
+                    month = month + 1;
+                    String date = getMonthFormat(month) + " " + day + " " + year;
+                    editDate.setText(date);
+
+                    cal1.set(year,month,day);
+                    activityDate = cal1.getTime();
+                    System.out.println(activityDate + " DATEEEEEEEEEEEEEE");
+
+                };
+                int year = cal.get(Calendar.YEAR);
+                int month = cal.get(Calendar.MONTH);
+                int day = cal.get(Calendar.DAY_OF_MONTH);
+
+                int style = AlertDialog.THEME_HOLO_LIGHT;
+                new DatePickerDialog(getActivity(), style, dateSetListener, year, month, day).show();
+            }
+        });
 
         return view;
     }
@@ -75,19 +112,20 @@ public class ActivityFragment extends Fragment {
         binding = null;
     }
 
-    @SuppressLint("NewApi")
-    public Connection connectionClass() {
-        Connection con = null;
-        String ip = "192.168.0.106", port = "1433", username = "sa", password = "123456", database = "CRUDAndroidDB";
-        StrictMode.ThreadPolicy tp = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(tp);
-        try {
-            Class.forName("net.sourceforge.jtds.jdbc.Driver");
-            String connectionUrl = "jdbc:jtds:sqlserver://" + ip + ":" + port + ";databasename=" + database + ";user=" + username + ";password=" + password + ";";
-            con = DriverManager.getConnection(connectionUrl);
-        } catch (Exception exception) {
-            Log.e("Error", exception.getMessage());
-        }
-        return con;
+    private String getMonthFormat(int month) {
+        if (month == 1){return "Jan";}
+        if (month == 2){return "Feb";}
+        if (month == 3){return "Mar";}
+        if (month == 4){return "Apr";}
+        if (month == 5){return "May";}
+        if (month == 6){return "Jun";}
+        if (month == 7){return "Jul";}
+        if (month == 8){return "Aug";}
+        if (month == 9){return "Sep";}
+        if (month == 10){return "Oct";}
+        if (month == 11){return "Nov";}
+        if (month == 12){return "Dec";}
+        return "Jan";
     }
+
 }

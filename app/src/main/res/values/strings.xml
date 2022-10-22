@@ -47,6 +47,9 @@
 
     <string name="title_activity">Activity</string>
     <string name="search_result">Search result</string>
+    <string name="btn_see_all_activities">See all activities</string>
+
     <string name="go_back">Go back</string>
+    <string name="btn_delete">Delete</string>
 
 </resources>
