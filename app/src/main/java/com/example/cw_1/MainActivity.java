@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private DatePickerDialog datePickerDialog;
+    @SuppressLint("SimpleDateFormat") SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
     private Date activityDate;
 
@@ -80,11 +81,11 @@ public class MainActivity extends AppCompatActivity {
         // DATE PICKER
         initDatePicker();
 
+        connectionClass();
+
         //Spinner data
         FillSpinner();
-
-
-
+        
         BottomNavigationView navView = findViewById(R.id.nav_view);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_activity, R.id.navigation_dashboard, R.id.navigation_trip, R.id.navigation_search)
@@ -113,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
             activity.put("category", category.getText().toString());
             activity.put("money", money.getText().toString());
             activity.put("issueDate", activityDate);
-            //activity.put("tripId", tripId);
             activity.put("note", note.getText().toString());
 
             firebase.collection("Trip").document(tripId).collection("Activity")
@@ -121,7 +121,26 @@ public class MainActivity extends AppCompatActivity {
                     .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                         @Override
                         public void onSuccess(DocumentReference documentReference) {
-                            Toast.makeText(MainActivity.this,"Add activity successful!", Toast.LENGTH_SHORT).show();
+                            try {
+                                Connection connection = connectionClass();
+
+                                if (connection != null) {
+                                    String activityDateString = format.format(activityDate);
+                                    String sqlScript = "Insert into Activity (Id, IssueDate, Note, Amount, Category, TripId) values ('"
+                                            + documentReference.getId() + "','"
+                                            + activityDateString + "','"
+                                            + note.getText().toString() + "','"
+                                            + money.getText().toString() + "','"
+                                            + category.getText().toString() + "','"
+                                            + tripId + "')";
+                                    Statement st = connection.createStatement();
+                                    st.executeUpdate(sqlScript);
+                                    Toast.makeText(MainActivity.this,"Add activity successful!", Toast.LENGTH_SHORT).show();
+                                }
+                            } catch (Exception exception) {
+                                Log.e("Error", exception.getMessage());
+                                Toast.makeText(getApplicationContext(), "Save failed !!!", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
@@ -216,7 +235,6 @@ public class MainActivity extends AppCompatActivity {
         Calendar cal = Calendar.getInstance();
         Calendar cal1 = Calendar.getInstance();
 
-
         DatePickerDialog.OnDateSetListener dateSetListener = (datePicker, year, month, day) -> {
             month = month + 1;
             String date = getMonthFormat(month) + " " + day + " " + year;
@@ -255,4 +273,20 @@ public class MainActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
+
+    @SuppressLint("NewApi")
+    public Connection connectionClass() {
+        Connection con = null;
+        String ip = "192.168.0.104", port = "1433", username = "sa", password = "123456", database = "CRUDAndroidDB";
+        StrictMode.ThreadPolicy tp = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(tp);
+        try {
+            Class.forName("net.sourceforge.jtds.jdbc.Driver");
+            String connectionUrl = "jdbc:jtds:sqlserver://" + ip + ":" + port + ";databasename=" + database + ";user=" + username + ";password=" + password + ";";
+            con = DriverManager.getConnection(connectionUrl);
+        } catch (Exception exception) {
+            Log.e("Error", exception.getMessage());
+        }
+        return con;
+    }
 }

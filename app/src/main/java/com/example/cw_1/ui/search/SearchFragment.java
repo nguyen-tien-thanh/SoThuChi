@@ -57,24 +57,48 @@ public class SearchFragment extends Fragment {
         ListView searchItemView = view.findViewById(R.id.searchItemView);
 
         // Set data of trip
-        FirebaseFirestore rootRef = FirebaseFirestore.getInstance();
-        CollectionReference tripsRef = rootRef.collection("Trip");
-        tripsRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                for (QueryDocumentSnapshot document : task.getResult()) {
-                    Trip trip = new Trip(document.getString("tripId"),
-                            document.getString("tripName"),
-                            document.getString("destination"),
-                            document.getDate("tripDate"),
-                            document.getBoolean("riskAssessment"),
-                            document.getString("description"));
+//        FirebaseFirestore rootRef = FirebaseFirestore.getInstance();
+//        CollectionReference tripsRef = rootRef.collection("Trip");
+//        tripsRef.get().addOnCompleteListener(task -> {
+//            if (task.isSuccessful()) {
+//                for (QueryDocumentSnapshot document : task.getResult()) {
+//                    Trip trip = new Trip(document.getString("tripId"),
+//                            document.getString("tripName"),
+//                            document.getString("destination"),
+//                            document.getDate("tripDate"),
+//                            document.getBoolean("riskAssessment"),
+//                            document.getString("description"));
+//                    tripList.add(trip);
+//                    listTripId.add(document.getId());
+//                }
+//                SearchAdapter adapter = new SearchAdapter(getActivity().getBaseContext(), tripList);
+//                searchItemView.setAdapter(adapter);
+//            }
+//        });
+
+        Connection connection = connectionClass();
+        try{
+            if(connection != null){
+                String sqlScript = "Select * from Trip";
+                Statement st = connection.createStatement();
+                ResultSet rs = st.executeQuery(sqlScript);
+
+                while(rs.next()){
+                    Trip trip = new Trip(rs.getString("TripId"),
+                            rs.getString("TripName"),
+                            rs.getString("Destination"),
+                            rs.getDate("TripDate"),
+                            rs.getBoolean("RiskAssessment"),
+                            rs.getString("Description"));
                     tripList.add(trip);
-                    listTripId.add(document.getId());
                 }
                 SearchAdapter adapter = new SearchAdapter(getActivity().getBaseContext(), tripList);
                 searchItemView.setAdapter(adapter);
             }
-        });
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
 
         SearchView searchView = view.findViewById(R.id.searchView);
         searchView.setIconified(false);
@@ -130,5 +154,21 @@ public class SearchFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    @SuppressLint("NewApi")
+    public Connection connectionClass() {
+        Connection con = null;
+        String ip = "192.168.0.104", port = "1433", username = "sa", password = "123456", database = "CRUDAndroidDB";
+        StrictMode.ThreadPolicy tp = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(tp);
+        try {
+            Class.forName("net.sourceforge.jtds.jdbc.Driver");
+            String connectionUrl = "jdbc:jtds:sqlserver://" + ip + ":" + port + ";databasename=" + database + ";user=" + username + ";password=" + password + ";";
+            con = DriverManager.getConnection(connectionUrl);
+        } catch (Exception exception) {
+            Log.e("Error", exception.getMessage());
+        }
+        return con;
     }
 }

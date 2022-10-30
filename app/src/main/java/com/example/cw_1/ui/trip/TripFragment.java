@@ -1,7 +1,10 @@
 package com.example.cw_1.ui.trip;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.StrictMode;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +28,10 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -35,12 +42,14 @@ public class TripFragment extends Fragment {
 
     private FragmentTripBinding binding;
     private Date tripDate;
+    @SuppressLint("SimpleDateFormat") SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         LayoutInflater lf = getActivity().getLayoutInflater();
         View view =  lf.inflate(R.layout.fragment_trip, container, false);
 
+        Connection connection = connectionClass();
         FirebaseFirestore firebase = FirebaseFirestore.getInstance();
 
         Calendar cal = Calendar.getInstance();
@@ -61,8 +70,10 @@ public class TripFragment extends Fragment {
         Button btnSaveTrip = view.findViewById(R.id.btnSaveTrip);
         tripDate = cal.getTime();
         btnSaveTrip.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
+
                 TextView tripName = view.findViewById(R.id.editTripName);
                 TextView destination = view.findViewById(R.id.editDestination);
                 TextView description = view.findViewById(R.id.editDescription);
@@ -85,7 +96,25 @@ public class TripFragment extends Fragment {
                             .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                 @Override
                                 public void onSuccess(DocumentReference documentReference) {
-                                    Toast.makeText(getActivity(), "Create successful !!", Toast.LENGTH_SHORT).show();
+                                    try{
+                                        if(connection != null){
+                                            String tripDateString = format.format(tripDate);
+
+                                            String sqlScript = "Insert into Trip (TripId, TripName, Destination, TripDate, RiskAssessment, Description ) values ('"
+                                                    +documentReference.getId()+"','"
+                                                    +tripName.getText().toString()+"','"
+                                                    +destination.getText().toString()+"','"
+                                                    +tripDateString+"','"
+                                                    +switchValue+"','"
+                                                    +description.getText().toString()+"')";
+                                            Statement st = connection.createStatement();
+                                            st.executeUpdate(sqlScript);
+                                            Toast.makeText(getActivity(), "Create successful !!", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                    catch (Exception exception) {
+                                        Log.e("Error", exception.getMessage());
+                                    }
                                 }
                             })
                             .addOnFailureListener(new OnFailureListener() {
@@ -96,25 +125,6 @@ public class TripFragment extends Fragment {
                             });
                 }
             }
-
-
-//            Connection connection = connectionClass();
-//            try{
-//                if(connection != null){
-//                    String sqlScript = "Insert into Trip (TripName, Destination, TripDate, RiskAssessment, Description ) values ('"
-//                            +tripName.getText().toString()+"','"
-//                            +destination.getText().toString()+"','"
-//                            +tripDate+"','"
-//                            +switchValue+"','"
-//                            +description.getText().toString()+"')";
-//                    Statement st = connection.createStatement();
-//                    st.executeUpdate(sqlScript);
-//                    Toast.makeText(this, "Create successful !!", Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//            catch (Exception exception) {
-//                Log.e("Error", exception.getMessage());
-//            }
         });
 
         return view;
@@ -124,5 +134,21 @@ public class TripFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    @SuppressLint("NewApi")
+    public Connection connectionClass() {
+        Connection con = null;
+        String ip = "192.168.0.104", port = "1433", username = "sa", password = "123456", database = "CRUDAndroidDB";
+        StrictMode.ThreadPolicy tp = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(tp);
+        try {
+            Class.forName("net.sourceforge.jtds.jdbc.Driver");
+            String connectionUrl = "jdbc:jtds:sqlserver://" + ip + ":" + port + ";databasename=" + database + ";user=" + username + ";password=" + password + ";";
+            con = DriverManager.getConnection(connectionUrl);
+        } catch (Exception exception) {
+            Log.e("Error", exception.getMessage());
+        }
+        return con;
     }
 }

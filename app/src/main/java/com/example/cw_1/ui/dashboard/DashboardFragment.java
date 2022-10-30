@@ -3,6 +3,8 @@ package com.example.cw_1.ui.dashboard;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.StrictMode;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +30,11 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -85,6 +92,17 @@ public class DashboardFragment extends Fragment {
         Button btnDeleteTrip = view.findViewById(R.id.btnDeleteTrip);
         btnDeleteTrip.setOnClickListener(v->{
             String tripId = listTripId.get(spinner.getSelectedItemPosition());
+            Connection connection = connectionClass();
+
+            try{
+                if(connection != null){
+                    String sqlScript = "DELETE FROM Trip Where TripId = '" + tripId + "'";
+                    Statement st = connection.createStatement();
+                    st.executeUpdate(sqlScript);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
 
             firebase.collection("Trip").document(tripId)
                 .delete()
@@ -101,6 +119,18 @@ public class DashboardFragment extends Fragment {
                 Toast.makeText(getActivity(), "There is no activity to delete !!!", Toast.LENGTH_SHORT).show();
             } else {
                 String tripId = listTripId.get(spinner.getSelectedItemPosition());
+                Connection connection = connectionClass();
+
+                try{
+                    if(connection != null){
+                        String sqlScript2 = "DELETE FROM Activity Where TripId = '" + tripId + "'";
+                        Statement st2 = connection.createStatement();
+                        st2.executeUpdate(sqlScript2);
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
                 DocumentReference docRef = firebase.collection("Trip").document(tripId);
                 docRef.collection("Activity").get().addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -320,5 +350,21 @@ public class DashboardFragment extends Fragment {
         } else {
             check.setVisibility(View.GONE);
         }
+    }
+
+    @SuppressLint("NewApi")
+    public Connection connectionClass() {
+        Connection con = null;
+        String ip = "192.168.0.104", port = "1433", username = "sa", password = "123456", database = "CRUDAndroidDB";
+        StrictMode.ThreadPolicy tp = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(tp);
+        try {
+            Class.forName("net.sourceforge.jtds.jdbc.Driver");
+            String connectionUrl = "jdbc:jtds:sqlserver://" + ip + ":" + port + ";databasename=" + database + ";user=" + username + ";password=" + password + ";";
+            con = DriverManager.getConnection(connectionUrl);
+        } catch (Exception exception) {
+            Log.e("Error", exception.getMessage());
+        }
+        return con;
     }
 }
