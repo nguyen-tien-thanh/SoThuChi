@@ -91,7 +91,6 @@ public class ActivityFragment extends Fragment {
 
                     cal1.set(year,month,day);
                     activityDate = cal1.getTime();
-                    System.out.println(activityDate + " DATEEEEEEEEEEEEEE");
 
                 };
                 int year = cal.get(Calendar.YEAR);

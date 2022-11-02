@@ -1,8 +1,5 @@
 package com.example.cw_1;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,15 +9,12 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.cw_1.models.Activity;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -58,7 +52,6 @@ public class ItemDetailActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         String activityId = intent.getStringExtra("id");
-                //String.valueOf(intent.getIntExtra("id", 0));
 
         //Btn prev, next date clicked
         Button btnPrev = findViewById(R.id.btnPrevUpdate);
@@ -105,33 +98,77 @@ public class ItemDetailActivity extends AppCompatActivity {
             } else if (money.getText().toString().length() == 0) {
                 Toast.makeText(this, "The money must not be null !!!", Toast.LENGTH_SHORT).show();
             } else {
-                Date dt = null;
-                try {
-                    dt = format.parse(date.getText().toString());
-                } catch (ParseException e) {
-                    e.printStackTrace();
+                Connection connection = connectionClass();
+                try{
+                    if(connection != null){
+                        Date dt = null;
+                        try {
+                            dt = format.parse(date.getText().toString());
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        assert dt != null;
+                        cal.setTime(dt);
+
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("category", category.getText().toString());
+                        updates.put("money", Integer.parseInt(money.getText().toString()));
+                        updates.put("note", note.getText().toString());
+                        updates.put("issueDate", cal.getTime());
+
+                        String sqlScript = "UPDATE Activity SET Category = '" + category.getText().toString() +
+                                "',Amount = " + money.getText().toString() +
+                                ",IssueDate = '" + date.getText().toString() +
+                                "',Note = '" + note.getText().toString() +
+                                "' Where Id ='" + activityId +"'";
+                        Statement st = connection.createStatement();
+                        st.executeUpdate(sqlScript);
+
+                        firebase.collection("Trip")
+                                .document(intent.getStringExtra("tripId"))
+                                .collection("Activity")
+                                .document(intent.getStringExtra("id"))
+                                .set(updates)
+                                .addOnSuccessListener(unused -> {
+                                    Toast.makeText(this, "Update successful !!!", Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(this, "Update failure !!!", Toast.LENGTH_SHORT).show();
+                                });
+//                        finish();
+                    }
                 }
-                assert dt != null;
-                cal.setTime(dt);
-
-                Map<String, Object> updates = new HashMap<>();
-                updates.put("category", category.getText().toString());
-                updates.put("money", money.getText().toString());
-                updates.put("note", note.getText().toString());
-                updates.put("issueDate", cal.getTime());
-
-                firebase.collection("Trip")
-                        .document(intent.getStringExtra("tripId"))
-                        .collection("Activity")
-                        .document(intent.getStringExtra("id"))
-                        .set(updates)
-                        .addOnSuccessListener(unused -> {
-                            Toast.makeText(this, "Update successful !!!", Toast.LENGTH_SHORT).show();
-                        })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(this, "Update failure !!!", Toast.LENGTH_SHORT).show();
-                        });
-                //finish();
+                catch (Exception exception) {
+                    Log.e("Error", exception.getMessage());
+                    Toast.makeText(this, "Update failed !!!", Toast.LENGTH_SHORT).show();
+                }
+//                Date dt = null;
+//                try {
+//                    dt = format.parse(date.getText().toString());
+//                } catch (ParseException e) {
+//                    e.printStackTrace();
+//                }
+//                assert dt != null;
+//                cal.setTime(dt);
+//
+//                Map<String, Object> updates = new HashMap<>();
+//                updates.put("category", category.getText().toString());
+//                updates.put("money", Integer.parseInt(money.getText().toString()));
+//                updates.put("note", note.getText().toString());
+//                updates.put("issueDate", cal.getTime());
+//
+//                firebase.collection("Trip")
+//                        .document(intent.getStringExtra("tripId"))
+//                        .collection("Activity")
+//                        .document(intent.getStringExtra("id"))
+//                        .set(updates)
+//                        .addOnSuccessListener(unused -> {
+//                            Toast.makeText(this, "Update successful !!!", Toast.LENGTH_SHORT).show();
+//                        })
+//                        .addOnFailureListener(e -> {
+//                            Toast.makeText(this, "Update failure !!!", Toast.LENGTH_SHORT).show();
+//                        });
+//                finish();
             }
         });
 
@@ -146,7 +183,7 @@ public class ItemDetailActivity extends AppCompatActivity {
     @SuppressLint("NewApi")
     public Connection connectionClass() {
         Connection con = null;
-        String ip = "192.168.0.106", port = "1433", username = "sa", password = "123456", database = "CRUDAndroidDB";
+        String ip = "192.168.0.104", port = "1433", username = "sa", password = "123456", database = "CRUDAndroidDB";
         StrictMode.ThreadPolicy tp = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(tp);
         try {

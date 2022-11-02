@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Map<String, Object> activity = new HashMap<>();
             activity.put("category", category.getText().toString());
-            activity.put("money", money.getText().toString());
+            activity.put("money", Integer.parseInt(money.getText().toString()));
             activity.put("issueDate", activityDate);
             activity.put("note", note.getText().toString());
 

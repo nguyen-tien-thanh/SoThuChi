@@ -174,7 +174,7 @@ public class DashboardFragment extends Fragment {
                 if (task.isSuccessful()) {
                     arrayOfActivities.clear();
                     for (QueryDocumentSnapshot document : task.getResult()) {
-                        int money = Integer.parseInt(document.getString("money"));
+                        int money = document.getLong("money").intValue();
 
                         Calendar cal1 = Calendar.getInstance();
                         cal1.setTime(document.getDate("issueDate"));
@@ -277,7 +277,7 @@ public class DashboardFragment extends Fragment {
                                 if (task.isSuccessful()) {
                                     arrayOfActivities.clear();
                                     for (QueryDocumentSnapshot documents : tasks.getResult()) {
-                                        int money = document.getLong("money").intValue();
+                                        int money = documents.getLong("money").intValue();
 
                                         Calendar cal1 = Calendar.getInstance();
                                         Calendar cal2 = Calendar.getInstance();
@@ -306,7 +306,7 @@ public class DashboardFragment extends Fragment {
                                 if (tasks.isSuccessful()) {
                                     arrayOfActivities.clear();
                                     for (QueryDocumentSnapshot documents : tasks.getResult()) {
-                                        int money = document.getLong("money").intValue();
+                                        int money = documents.getLong("money").intValue();
 
                                         Calendar cal2 = Calendar.getInstance();
                                         cal2.setTime(documents.getDate("issueDate"));
