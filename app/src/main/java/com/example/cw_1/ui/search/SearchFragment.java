@@ -57,47 +57,47 @@ public class SearchFragment extends Fragment {
         ListView searchItemView = view.findViewById(R.id.searchItemView);
 
         // Set data of trip
-//        FirebaseFirestore rootRef = FirebaseFirestore.getInstance();
-//        CollectionReference tripsRef = rootRef.collection("Trip");
-//        tripsRef.get().addOnCompleteListener(task -> {
-//            if (task.isSuccessful()) {
-//                for (QueryDocumentSnapshot document : task.getResult()) {
-//                    Trip trip = new Trip(document.getString("tripId"),
-//                            document.getString("tripName"),
-//                            document.getString("destination"),
-//                            document.getDate("tripDate"),
-//                            document.getBoolean("riskAssessment"),
-//                            document.getString("description"));
-//                    tripList.add(trip);
-//                    listTripId.add(document.getId());
-//                }
-//                SearchAdapter adapter = new SearchAdapter(getActivity().getBaseContext(), tripList);
-//                searchItemView.setAdapter(adapter);
-//            }
-//        });
-
-        Connection connection = connectionClass();
-        try{
-            if(connection != null){
-                String sqlScript = "Select * from Trip";
-                Statement st = connection.createStatement();
-                ResultSet rs = st.executeQuery(sqlScript);
-
-                while(rs.next()){
-                    Trip trip = new Trip(rs.getString("TripId"),
-                            rs.getString("TripName"),
-                            rs.getString("Destination"),
-                            rs.getDate("TripDate"),
-                            rs.getBoolean("RiskAssessment"),
-                            rs.getString("Description"));
+        FirebaseFirestore rootRef = FirebaseFirestore.getInstance();
+        CollectionReference tripsRef = rootRef.collection("Trip");
+        tripsRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    Trip trip = new Trip(document.getString("tripId"),
+                            document.getString("tripName"),
+                            document.getString("destination"),
+                            document.getDate("tripDate"),
+                            document.getBoolean("riskAssessment"),
+                            document.getString("description"));
                     tripList.add(trip);
+                    listTripId.add(document.getId());
                 }
                 SearchAdapter adapter = new SearchAdapter(getActivity().getBaseContext(), tripList);
                 searchItemView.setAdapter(adapter);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        });
+
+//        Connection connection = connectionClass();
+//        try{
+//            if(connection != null){
+//                String sqlScript = "Select * from Trip";
+//                Statement st = connection.createStatement();
+//                ResultSet rs = st.executeQuery(sqlScript);
+//
+//                while(rs.next()){
+//                    Trip trip = new Trip(rs.getString("TripId"),
+//                            rs.getString("TripName"),
+//                            rs.getString("Destination"),
+//                            rs.getDate("TripDate"),
+//                            rs.getBoolean("RiskAssessment"),
+//                            rs.getString("Description"));
+//                    tripList.add(trip);
+//                }
+//                SearchAdapter adapter = new SearchAdapter(getActivity().getBaseContext(), tripList);
+//                searchItemView.setAdapter(adapter);
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
 
 
         SearchView searchView = view.findViewById(R.id.searchView);
