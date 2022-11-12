@@ -355,7 +355,7 @@ public class DashboardFragment extends Fragment {
     @SuppressLint("NewApi")
     public Connection connectionClass() {
         Connection con = null;
-        String ip = "192.168.0.104", port = "1433", username = "sa", password = "123456", database = "CRUDAndroidDB";
+        String ip = "192.168.0.102", port = "1433", username = "sa", password = "123456", database = "CRUDAndroidDB";
         StrictMode.ThreadPolicy tp = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(tp);
         try {
